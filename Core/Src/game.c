@@ -49,15 +49,15 @@ void doodlerMoveDown() {
 
 
 bool stepCollision() {
-    if (lcdArr[characters[1].x][characters[1].y + 1] == NORMAL_STEP) {
+    if (lcdArr[characters[1].y + 1][characters[1].x] == NORMAL_STEP) {
         doodlerMoveMode = ASCENDING;
         shiftUpCount = 7;
         return true;
-    } else if (lcdArr[characters[1].x][characters[1].y + 1] == SPRING_STEP) {
+    } else if (lcdArr[characters[1].y + 1][characters[1].x] == SPRING_STEP) {
         doodlerMoveMode = ASCENDING;
         shiftUpCount = 20;
         return true;
-    } else if (lcdArr[characters[1].x][characters[1].y + 1] == BROKEN_STEP) {
+    } else if (lcdArr[characters[1].y + 1][characters[1].x] == BROKEN_STEP) {
         for (int i = 2; i < 82; i++) {
             if (characters[i].x == characters[1].x && characters[i].y == (characters[1].y + 1) &&
                 characters[i].type == BROKEN_STEP) {

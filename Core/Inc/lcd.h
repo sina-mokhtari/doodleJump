@@ -16,9 +16,11 @@
 #define LCD_D14 GPIO_PIN_14
 
 void lcdInit();
+
 void lcdTest();
+
 void lcdUpdate();
-void lcdInitFirst();
+
 
 extern characterType lcdArr[20][4];
 #endif //DOODLEJUMP_LCD_H

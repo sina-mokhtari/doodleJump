@@ -92,8 +92,13 @@ void charactersInit() {
         j = (i-2) % 4;
         characters[i] = (Character) {AIR, j, (j != 0) ? y : ++y};
     }
-    characters[0] = (Character) {DOODLER_UP, 2, 2};
-    characters[1] = (Character) {DOODLER_DOWN, 2, 3};
+    characters[0] = (Character) {DOODLER_UP, 2, 9};
+    characters[1] = (Character) {DOODLER_DOWN, 2, 10};
+
+    //characters[56] = (Character) {NORMAL_STEP, 2, 13};
+    characters[20] = (Character) {NORMAL_STEP, 2, 4};
+    characters[40] = (Character) {NORMAL_STEP, 2, 9};
+    characters[56] = (Character) {NORMAL_STEP, 2, 13};
 }
 
 void replaceNewCharacters(uint32_t n) {
@@ -109,7 +114,7 @@ void replaceNewCharacters(uint32_t n) {
             replaceRand = rand() % 4;
             for (int i = 2, j = 0; j < 4 && i < 82; i++) {
                 if (characters[i].y == 20) {
-                    characters[i] = (Character) {(j != replaceRand) ? AIR : NORMAL_STEP, j, 0};
+                    characters[i] = (Character) {(j != replaceRand) ? AIR : NORMAL_STEP, j++, 0};
                 }
             }
             break;
@@ -119,7 +124,7 @@ void replaceNewCharacters(uint32_t n) {
             for (int i = 2, j = 0; j < 4 && i < 82; i++) {
                 if (characters[i].y == 20) {
                     characters[i] = (Character) {(j == replaceRand || j == replaceRand2) ? NORMAL_STEP : AIR,
-                                                 j, 0};
+                                                 j++, 0};
                 }
             }
             break;
@@ -131,8 +136,8 @@ bool generate;
 Character generatedCharacters[4];
 
 void generateCharacters() {
-    if ((rand() % 20) < probabilities[1]) // generate
-        if ((rand() % 20) < probabilities[1]) // generate 2
+    if ((rand() % 25) < probabilities[1]) // generate
+        if ((rand() % 25) < probabilities[1]) // generate 2
             replaceNewCharacters(2);
         else    // generate 1
             replaceNewCharacters(1);

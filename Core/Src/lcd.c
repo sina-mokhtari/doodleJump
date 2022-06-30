@@ -11,7 +11,7 @@
 
 char lcdStr[100];
 
-characterType lcdArr[20][4];
+characterType lcdArr[20][4] = {DEFAULT_CHARACTER_TYPE};
 
 void lcdInit() {
     LiquidCrystal(GPIOD, LCD_D8, LCD_D9, LCD_D10, LCD_D11, LCD_D12, LCD_D13,
@@ -24,18 +24,7 @@ void lcdInit() {
     createChar(4, springStepByte);
     createChar(5, monsterByte);
     createChar(6, holeByte);
-    //setCursor(3, 1);
-    //write(0xef);
-    //write(0);
-//    write(DOODLER_UP);
-//    setCursor(4, 1);
-//    write(DOODLER_DOWN);
-//    setCursor(5, 1);
-//    write(BROKEN_STEP);
-//    setCursor(0, 3);
-//    write(MONSTER);
-//    setCursor(2, 2);
-//    write(BULLET);
+
 }
 
 void lcdTest() {
@@ -44,44 +33,28 @@ void lcdTest() {
 
 Character tmpCharacter;
 
-void lcdInitFirst() {
-    for (int i = 0; i < 82; i++) {
-        tmpCharacter = characters[i];
-        lcdArr[tmpCharacter.y][tmpCharacter.x] = tmpCharacter.type;
-        setCursor( tmpCharacter.y,3 - tmpCharacter.x);
-        write(tmpCharacter.type);
-    }
-    tmpCharacter = characters[0];
-    lcdArr[tmpCharacter.y][tmpCharacter.x] = tmpCharacter.type;
-    setCursor( tmpCharacter.y,3 - tmpCharacter.x);
-    write(tmpCharacter.type);
-    tmpCharacter = characters[1];
-    lcdArr[tmpCharacter.y][tmpCharacter.x] = tmpCharacter.type;
-    setCursor( tmpCharacter.y,3 - tmpCharacter.x);
-    write(tmpCharacter.type);
-}
 
 void lcdUpdate() {
-
-    // updating characters arr
 
     // refreshing lcd
     for (int i = 2; i < 82; i++) {
         tmpCharacter = characters[i];
         if (lcdArr[tmpCharacter.y][tmpCharacter.x] != tmpCharacter.type) {
             lcdArr[tmpCharacter.y][tmpCharacter.x] = tmpCharacter.type;
-            setCursor( tmpCharacter.y,3 - tmpCharacter.x);
+            setCursor(tmpCharacter.y, 3 - tmpCharacter.x);
             write(tmpCharacter.type);
         }
     }
     tmpCharacter = characters[0];
     lcdArr[tmpCharacter.y][tmpCharacter.x] = tmpCharacter.type;
-    setCursor( tmpCharacter.y,3 - tmpCharacter.x);
+    setCursor(tmpCharacter.y, 3 - tmpCharacter.x);
     write(tmpCharacter.type);
+
     tmpCharacter = characters[1];
     lcdArr[tmpCharacter.y][tmpCharacter.x] = tmpCharacter.type;
-    setCursor( tmpCharacter.y,3 - tmpCharacter.x);
+    setCursor(tmpCharacter.y, 3 - tmpCharacter.x);
     write(tmpCharacter.type);
+
     /*  setCursor(7, 0);
       sprintf(lcdStr, "%lu", score);
       print(lcdStr);*/

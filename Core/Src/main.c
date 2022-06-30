@@ -23,6 +23,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
+#include "stdlib.h"
 #include <string.h>
 #include "globals.h"
 #include "init.h"
@@ -807,10 +808,14 @@ void StartDefaultTask(void *argument) {
 void StartUartTxTsk(void *argument) {
     /* USER CODE BEGIN StartUartTxTsk */
     char uartStr[100];
+    osThreadSuspend(updateLcdTskHandle);
     /* Infinite loop */
     for (;;) {
         osSemaphoreAcquire(keypadSemHandle, osWaitForever);
-
+        if (keypadNum == 16) {
+            srand(osKernelGetTickCount());
+            osThreadResume(updateLcdTskHandle);
+        }
         HAL_GPIO_TogglePin(GPIOE, GPIO_PIN_8);
 
         sprintf(uartStr, "keypad: %lu\n", keypadNum);
@@ -840,7 +845,7 @@ void StartGetVolumeTsk(void *argument) {
         //sprintf(adcStr, "volume: %lu\n", difficulty);
 
         //osSemaphoreAcquire(uartDmaSemHandle, osWaitForever);
-       // HAL_UART_Transmit_DMA(&huart2, (uint8_t *) adcStr, strlen(adcStr));
+        // HAL_UART_Transmit_DMA(&huart2, (uint8_t *) adcStr, strlen(adcStr));
 
         osDelay(200);
 
@@ -860,11 +865,12 @@ void StartUpdateLcdTsk(void *argument) {
     /* USER CODE BEGIN StartUpdateLcdTsk */
     lcdInit();
     charactersInit();
-    lcdInitFirst();
+//    lcdInitFirst();
+    lcdUpdate();
     /* Infinite loop */
     for (;;) {
         handleGame();
-        osDelay(500);
+        osDelay(300);
     }
     /* USER CODE END StartUpdateLcdTsk */
 }

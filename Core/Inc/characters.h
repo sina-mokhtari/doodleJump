@@ -10,6 +10,7 @@
 extern byte doodlerUpByte[], doodlerDownByte[], normalStepByte[], brokenStepByte[], springStepByte[], monsterByte[], holeByte[];
 
 typedef enum {
+    DEFAULT_CHARACTER_TYPE,
     AIR = (uint_fast8_t) 0x20,
     DOODLER_UP = (uint_fast8_t) 0,
     DOODLER_DOWN = (uint_fast8_t) 1,
