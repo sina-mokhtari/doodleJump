@@ -11,4 +11,6 @@ typedef enum {
 } doodlerMoveModeType;
 
 int handleGame();
+void doodlerMoveLeft();
+void doodlerMoveRight();
 #endif //DOODLEJUMP_GAME_H

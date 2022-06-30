@@ -47,6 +47,36 @@ void doodlerMoveDown() {
     characters[1].y++;
 }
 
+void doodlerMoveLeft() {
+    if (characters[0].x > 0 || characters[1].x > 0) {
+        characters[0].x--;
+        characters[1].x--;
+    } else {
+        characters[0].x = 3;
+        characters[1].x = 3;
+    }
+}
+
+void doodlerMoveRight() {
+    if (characters[0].x < 3 || characters[1].x < 3) {
+        characters[0].x++;
+        characters[1].x++;
+    } else {
+        characters[0].x = 0;
+        characters[1].x = 0;
+    }
+}
+
+void doodlerSwapCheck() {
+    if (characters[0].x < 0 || characters[1].x < 0) {
+        characters[0].x = 3;
+        characters[1].x = 3;
+    } else if (characters[0].x > 3 || characters[1].x > 3) {
+        characters[0].x = 0;
+        characters[1].x = 0;
+    }
+}
+
 
 bool stepCollision() {
     if (lcdArr[characters[1].y + 1][characters[1].x] == NORMAL_STEP) {
@@ -75,6 +105,8 @@ int handleGame() {
         lose();
         return -1;
     }
+
+    //doodlerSwapCheck();
 
     if (doodlerMoveMode == ASCENDING) {
         if (characters[0].y <= 9) {
