@@ -27,7 +27,7 @@ typedef struct {
     uint_fast8_t y;
 } Character;
 
-extern Character characters[80];
+extern Character characters[82];
 
 void shiftDownCharacters(uint32_t shiftStep);
 

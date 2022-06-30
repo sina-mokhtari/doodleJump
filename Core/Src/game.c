@@ -58,7 +58,7 @@ bool stepCollision() {
         shiftUpCount = 20;
         return true;
     } else if (lcdArr[characters[1].x][characters[1].y + 1] == BROKEN_STEP) {
-        for (int i = 2; i < 80; i++) {
+        for (int i = 2; i < 82; i++) {
             if (characters[i].x == characters[1].x && characters[i].y == (characters[1].y + 1) &&
                 characters[i].type == BROKEN_STEP) {
                 characters[i] = (Character) {AIR, characters[i].x, characters[i].y};

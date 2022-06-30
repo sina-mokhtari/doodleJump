@@ -45,13 +45,20 @@ void lcdTest() {
 Character tmpCharacter;
 
 void lcdInitFirst() {
-    for (int i = 0; i < 80; i++) {
+    for (int i = 0; i < 82; i++) {
         tmpCharacter = characters[i];
-        lcdArr[tmpCharacter.x][tmpCharacter.y] = tmpCharacter.type;
+        lcdArr[tmpCharacter.y][tmpCharacter.x] = tmpCharacter.type;
         setCursor( tmpCharacter.y,3 - tmpCharacter.x);
         write(tmpCharacter.type);
-
     }
+    tmpCharacter = characters[0];
+    lcdArr[tmpCharacter.y][tmpCharacter.x] = tmpCharacter.type;
+    setCursor( tmpCharacter.y,3 - tmpCharacter.x);
+    write(tmpCharacter.type);
+    tmpCharacter = characters[1];
+    lcdArr[tmpCharacter.y][tmpCharacter.x] = tmpCharacter.type;
+    setCursor( tmpCharacter.y,3 - tmpCharacter.x);
+    write(tmpCharacter.type);
 }
 
 void lcdUpdate() {
@@ -59,14 +66,22 @@ void lcdUpdate() {
     // updating characters arr
 
     // refreshing lcd
-    for (int i = 0; i < 80; i++) {
+    for (int i = 2; i < 82; i++) {
         tmpCharacter = characters[i];
-        if (lcdArr[tmpCharacter.x][tmpCharacter.y] != tmpCharacter.type) {
-            lcdArr[tmpCharacter.x][tmpCharacter.y] = tmpCharacter.type;
+        if (lcdArr[tmpCharacter.y][tmpCharacter.x] != tmpCharacter.type) {
+            lcdArr[tmpCharacter.y][tmpCharacter.x] = tmpCharacter.type;
             setCursor( tmpCharacter.y,3 - tmpCharacter.x);
             write(tmpCharacter.type);
         }
     }
+    tmpCharacter = characters[0];
+    lcdArr[tmpCharacter.y][tmpCharacter.x] = tmpCharacter.type;
+    setCursor( tmpCharacter.y,3 - tmpCharacter.x);
+    write(tmpCharacter.type);
+    tmpCharacter = characters[1];
+    lcdArr[tmpCharacter.y][tmpCharacter.x] = tmpCharacter.type;
+    setCursor( tmpCharacter.y,3 - tmpCharacter.x);
+    write(tmpCharacter.type);
     /*  setCursor(7, 0);
       sprintf(lcdStr, "%lu", score);
       print(lcdStr);*/
