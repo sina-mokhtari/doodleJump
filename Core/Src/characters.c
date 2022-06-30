@@ -81,17 +81,27 @@ byte holeByte[] = {
         0x00
 };
 
-Character characters[80] = {{DOODLER_UP,2,15},{DOODLER_DOWN,2,16}};
+Character characters[80] = {{DOODLER_UP,   2, 2},
+                            {DOODLER_DOWN, 2, 3}};
 //[2 ... 79] = {(characterType) NULL, 0, 0}
 
 int replaceRand;
 int replaceRand2;
 
+void charactersInit() {
+    for (int i = 0, y = -1, j; i < 80; i++) {
+        j = i % 4;
+        characters[i] = (Character) {AIR, j, (j != 0) ? y : ++y};
+    }
+    characters[0] = (Character) {DOODLER_UP, 2, 2};
+    characters[1] = (Character) {DOODLER_DOWN, 2, 3};
+}
+
 void replaceNewCharacters(uint32_t n) {
     switch (n) {
         case 0:
             for (int i = 2, j = 0; j < 4 && i < 80; i++) {
-                if (characters[i].y == 19) {
+                if (characters[i].y == 20) {
                     characters[i] = (Character) {AIR, j++, 0};
                 }
             }
@@ -99,7 +109,7 @@ void replaceNewCharacters(uint32_t n) {
         case 1:
             replaceRand = rand() % 4;
             for (int i = 2, j = 0; j < 4 && i < 80; i++) {
-                if (characters[i].y == 19) {
+                if (characters[i].y == 20) {
                     characters[i] = (Character) {(j != replaceRand) ? AIR : NORMAL_STEP, j, 0};
                 }
             }
@@ -108,7 +118,7 @@ void replaceNewCharacters(uint32_t n) {
             replaceRand = rand() % 4;
             replaceRand2 = rand() % 4;
             for (int i = 2, j = 0; j < 4 && i < 80; i++) {
-                if (characters[i].y == 19) {
+                if (characters[i].y == 20) {
                     characters[i] = (Character) {(j == replaceRand || j == replaceRand2) ? NORMAL_STEP : AIR,
                                                  j, 0};
                 }
@@ -130,7 +140,14 @@ void generateCharacters() {
 
     else    // not generate
         replaceNewCharacters(0);
+}
 
+void shiftDownCharacters(uint32_t shiftStep) {
+    for (int i = 2; i < 80; i++) {
+        if (characters[i].type != BULLET)
+            characters[i].y += shiftStep;
 
+    }
+    generateCharacters();
 }
 

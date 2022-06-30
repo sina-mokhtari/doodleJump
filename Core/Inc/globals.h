@@ -8,10 +8,6 @@
 //#include "cmsis_os.h"
 //#include "requisite.h"
 
-typedef enum {
-    ASCENDING, DESCENDING
-} xChangingMode;
-
 extern ADC_HandleTypeDef hadc1;
 
 extern UART_HandleTypeDef huart2;

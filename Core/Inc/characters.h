@@ -29,4 +29,10 @@ typedef struct {
 
 extern Character characters[80];
 
+void shiftDownCharacters(uint32_t shiftStep);
+
+void generateCharacters();
+
+void charactersInit();
+
 #endif //DOODLEJUMP_CHARACTERS_H

@@ -24,18 +24,18 @@ void lcdInit() {
     createChar(4, springStepByte);
     createChar(5, monsterByte);
     createChar(6, holeByte);
-    setCursor(3, 1);
+    //setCursor(3, 1);
     //write(0xef);
     //write(0);
-    write(DOODLER_UP);
-    setCursor(4, 1);
-    write(DOODLER_DOWN);
-    setCursor(5, 1);
-    write(BROKEN_STEP);
-    setCursor(0, 3);
-    write(MONSTER);
-    setCursor(2, 2);
-    write(BULLET);
+//    write(DOODLER_UP);
+//    setCursor(4, 1);
+//    write(DOODLER_DOWN);
+//    setCursor(5, 1);
+//    write(BROKEN_STEP);
+//    setCursor(0, 3);
+//    write(MONSTER);
+//    setCursor(2, 2);
+//    write(BULLET);
 }
 
 void lcdTest() {
@@ -43,6 +43,16 @@ void lcdTest() {
 }
 
 Character tmpCharacter;
+
+void lcdInitFirst() {
+    for (int i = 0; i < 80; i++) {
+        tmpCharacter = characters[i];
+        lcdArr[tmpCharacter.x][tmpCharacter.y] = tmpCharacter.type;
+        setCursor( tmpCharacter.y,3 - tmpCharacter.x);
+        write(tmpCharacter.type);
+
+    }
+}
 
 void lcdUpdate() {
 
@@ -53,11 +63,11 @@ void lcdUpdate() {
         tmpCharacter = characters[i];
         if (lcdArr[tmpCharacter.x][tmpCharacter.y] != tmpCharacter.type) {
             lcdArr[tmpCharacter.x][tmpCharacter.y] = tmpCharacter.type;
-            setCursor(3 - tmpCharacter.x, tmpCharacter.y);
+            setCursor( tmpCharacter.y,3 - tmpCharacter.x);
             write(tmpCharacter.type);
         }
     }
-    setCursor(7, 0);
-    sprintf(lcdStr, "%lu", score);
-    print(lcdStr);
+    /*  setCursor(7, 0);
+      sprintf(lcdStr, "%lu", score);
+      print(lcdStr);*/
 }
