@@ -9,4 +9,6 @@
 //#include "stdbool.h"
 #include "globals.h"
 
+typedef unsigned char byte;
+
 #endif //DOODLEJUMP_REQUISITE_H

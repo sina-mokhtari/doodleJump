@@ -23,6 +23,7 @@ extern PCD_HandleTypeDef hpcd_USB_FS;
 extern uint32_t keypadNum;
 extern uint32_t score;
 extern uint32_t difficulty;
+extern uint32_t probabilities[2];
 
 
 extern char str[100];
