@@ -12,6 +12,8 @@ extern ADC_HandleTypeDef hadc1;
 
 extern UART_HandleTypeDef huart2;
 
+extern TIM_HandleTypeDef htim8;
+
 extern PCD_HandleTypeDef hpcd_USB_FS;
 
 
@@ -25,6 +27,6 @@ extern uint32_t probabilities[2];
 extern char str[100];
 
 
-extern uint_fast32_t volume;
+//extern uint_fast32_t volume;
 
 #endif //DOODLEJUMP_GLOBALS_H

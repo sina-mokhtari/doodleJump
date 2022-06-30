@@ -96,7 +96,7 @@ void charactersInit() {
     characters[1] = (Character) {DOODLER_DOWN, 2, 10};
 
     //characters[56] = (Character) {NORMAL_STEP, 2, 13};
-    characters[20] = (Character) {NORMAL_STEP, 2, 4};
+    characters[20] = (Character) {SPRING_STEP, 2, 4};
     characters[40] = (Character) {NORMAL_STEP, 2, 9};
     characters[56] = (Character) {NORMAL_STEP, 2, 13};
 }
