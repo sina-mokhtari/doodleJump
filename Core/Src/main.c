@@ -50,6 +50,8 @@ int myFlag = 1;
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc1;
 
+TIM_HandleTypeDef htim8;
+
 UART_HandleTypeDef huart2;
 DMA_HandleTypeDef hdma_usart2_tx;
 
@@ -88,7 +90,7 @@ osThreadId_t update7SegTskHandle;
 const osThreadAttr_t update7SegTsk_attributes = {
         .name = "update7SegTsk",
         .stack_size = 128 * 4,
-        .priority = (osPriority_t) osPriorityNormal2,
+        .priority = (osPriority_t) osPriorityNormal1,
 };
 /* Definitions for uartMutex */
 osMutexId_t uartMutexHandle;
@@ -126,6 +128,8 @@ static void MX_USB_PCD_Init(void);
 static void MX_USART2_UART_Init(void);
 
 static void MX_ADC1_Init(void);
+
+static void MX_TIM8_Init(void);
 
 void StartDefaultTask(void *argument);
 
@@ -177,6 +181,7 @@ int main(void) {
     MX_USB_PCD_Init();
     MX_USART2_UART_Init();
     MX_ADC1_Init();
+    MX_TIM8_Init();
     /* USER CODE BEGIN 2 */
     programInit();
 
@@ -297,9 +302,11 @@ void SystemClock_Config(void) {
     if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK) {
         Error_Handler();
     }
-    PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USB | RCC_PERIPHCLK_USART2;
+    PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USB | RCC_PERIPHCLK_USART2
+                                         | RCC_PERIPHCLK_TIM8;
     PeriphClkInit.Usart2ClockSelection = RCC_USART2CLKSOURCE_PCLK1;
     PeriphClkInit.USBClockSelection = RCC_USBCLKSOURCE_PLL_DIV1_5;
+    PeriphClkInit.Tim8ClockSelection = RCC_TIM8CLK_HCLK;
     if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK) {
         Error_Handler();
     }
@@ -364,6 +371,71 @@ static void MX_ADC1_Init(void) {
     /* USER CODE BEGIN ADC1_Init 2 */
 
     /* USER CODE END ADC1_Init 2 */
+
+}
+
+/**
+  * @brief TIM8 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM8_Init(void) {
+
+    /* USER CODE BEGIN TIM8_Init 0 */
+
+    /* USER CODE END TIM8_Init 0 */
+
+    TIM_MasterConfigTypeDef sMasterConfig = {0};
+    TIM_OC_InitTypeDef sConfigOC = {0};
+    TIM_BreakDeadTimeConfigTypeDef sBreakDeadTimeConfig = {0};
+
+    /* USER CODE BEGIN TIM8_Init 1 */
+
+    /* USER CODE END TIM8_Init 1 */
+    htim8.Instance = TIM8;
+    htim8.Init.Prescaler = 0;
+    htim8.Init.CounterMode = TIM_COUNTERMODE_UP;
+    htim8.Init.Period = 65535;
+    htim8.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+    htim8.Init.RepetitionCounter = 0;
+    htim8.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+    if (HAL_TIM_PWM_Init(&htim8) != HAL_OK) {
+        Error_Handler();
+    }
+    sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+    sMasterConfig.MasterOutputTrigger2 = TIM_TRGO2_RESET;
+    sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+    if (HAL_TIMEx_MasterConfigSynchronization(&htim8, &sMasterConfig) != HAL_OK) {
+        Error_Handler();
+    }
+    sConfigOC.OCMode = TIM_OCMODE_PWM1;
+    sConfigOC.Pulse = 0;
+    sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+    sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
+    sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+    sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
+    sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_RESET;
+    if (HAL_TIM_PWM_ConfigChannel(&htim8, &sConfigOC, TIM_CHANNEL_1) != HAL_OK) {
+        Error_Handler();
+    }
+    sBreakDeadTimeConfig.OffStateRunMode = TIM_OSSR_DISABLE;
+    sBreakDeadTimeConfig.OffStateIDLEMode = TIM_OSSI_DISABLE;
+    sBreakDeadTimeConfig.LockLevel = TIM_LOCKLEVEL_OFF;
+    sBreakDeadTimeConfig.DeadTime = 0;
+    sBreakDeadTimeConfig.BreakState = TIM_BREAK_DISABLE;
+    sBreakDeadTimeConfig.BreakPolarity = TIM_BREAKPOLARITY_HIGH;
+    sBreakDeadTimeConfig.BreakFilter = 0;
+    sBreakDeadTimeConfig.Break2State = TIM_BREAK2_DISABLE;
+    sBreakDeadTimeConfig.Break2Polarity = TIM_BREAK2POLARITY_HIGH;
+    sBreakDeadTimeConfig.Break2Filter = 0;
+    sBreakDeadTimeConfig.AutomaticOutput = TIM_AUTOMATICOUTPUT_DISABLE;
+    if (HAL_TIMEx_ConfigBreakDeadTime(&htim8, &sBreakDeadTimeConfig) != HAL_OK) {
+        Error_Handler();
+    }
+    /* USER CODE BEGIN TIM8_Init 2 */
+
+    /* USER CODE END TIM8_Init 2 */
+    HAL_TIM_MspPostInit(&htim8);
 
 }
 
@@ -505,11 +577,11 @@ static void MX_GPIO_Init(void) {
     HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
     /*Configure GPIO pins : PC13 PC1 PC2 PC3
-                             PC6 PC7 PC8 PC9
-                             PC10 PC11 PC12 */
+                             PC7 PC8 PC9 PC10
+                             PC11 PC12 */
     GPIO_InitStruct.Pin = GPIO_PIN_13 | GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_3
-                          | GPIO_PIN_6 | GPIO_PIN_7 | GPIO_PIN_8 | GPIO_PIN_9
-                          | GPIO_PIN_10 | GPIO_PIN_11 | GPIO_PIN_12;
+                          | GPIO_PIN_7 | GPIO_PIN_8 | GPIO_PIN_9 | GPIO_PIN_10
+                          | GPIO_PIN_11 | GPIO_PIN_12;
     GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
@@ -805,7 +877,7 @@ void StartUpdate7SegTsk(void *argument) {
     /* USER CODE BEGIN StartUpdate7SegTsk */
     /* Infinite loop */
     for (;;) {
-        update7Segment(score,difficulty);
+        update7Segment(score, difficulty);
         osDelay(1);
     }
     /* USER CODE END StartUpdate7SegTsk */
