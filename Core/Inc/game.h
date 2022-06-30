@@ -10,5 +10,5 @@ typedef enum {
     ASCENDING, DESCENDING
 } doodlerMoveModeType;
 
-void handleGame();
+int handleGame();
 #endif //DOODLEJUMP_GAME_H

@@ -69,11 +69,11 @@ bool stepCollision() {
     return false;
 }
 
-void handleGame() {
+int handleGame() {
 
     if (monsterCollision() || holeCollision() || fallCollision()) {
         lose();
-        return;
+        return -1;
     }
 
     if (doodlerMoveMode == ASCENDING) {
@@ -96,5 +96,5 @@ void handleGame() {
 
     }
 
-    lcdUpdate();
+    return lcdUpdate();
 }

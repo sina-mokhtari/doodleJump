@@ -813,8 +813,10 @@ void StartUartTxTsk(void *argument) {
     for (;;) {
         osSemaphoreAcquire(keypadSemHandle, osWaitForever);
         if (keypadNum == 16) {
-            srand(osKernelGetTickCount());
-            osThreadResume(updateLcdTskHandle);
+
+                srand(osKernelGetTickCount());
+                osThreadResume(updateLcdTskHandle);
+
         }
         HAL_GPIO_TogglePin(GPIOE, GPIO_PIN_8);
 
@@ -863,13 +865,18 @@ void StartGetVolumeTsk(void *argument) {
 /* USER CODE END Header_StartUpdateLcdTsk */
 void StartUpdateLcdTsk(void *argument) {
     /* USER CODE BEGIN StartUpdateLcdTsk */
+    char lcdStr[100];
     lcdInit();
     charactersInit();
 //    lcdInitFirst();
     lcdUpdate();
     /* Infinite loop */
     for (;;) {
-        handleGame();
+        sprintf(lcdStr, "lcd Write Count: %d\n", handleGame());
+
+        osSemaphoreAcquire(uartDmaSemHandle, osWaitForever);
+        HAL_UART_Transmit_DMA(&huart2, (uint8_t *) lcdStr, strlen(lcdStr));
+
         osDelay(300);
     }
     /* USER CODE END StartUpdateLcdTsk */

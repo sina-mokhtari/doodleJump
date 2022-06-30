@@ -19,7 +19,7 @@ void lcdInit();
 
 void lcdTest();
 
-void lcdUpdate();
+int lcdUpdate();
 
 
 extern characterType lcdArr[20][4];

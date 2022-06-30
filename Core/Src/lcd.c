@@ -33,8 +33,10 @@ void lcdTest() {
 
 Character tmpCharacter;
 
+int lcdWriteCount;
 
-void lcdUpdate() {
+int lcdUpdate() {
+    lcdWriteCount = 0;
 
     // refreshing lcd
     for (int i = 2; i < 82; i++) {
@@ -43,6 +45,7 @@ void lcdUpdate() {
             lcdArr[tmpCharacter.y][tmpCharacter.x] = tmpCharacter.type;
             setCursor(tmpCharacter.y, 3 - tmpCharacter.x);
             write(tmpCharacter.type);
+            lcdWriteCount++;
         }
     }
     tmpCharacter = characters[0];
@@ -55,7 +58,10 @@ void lcdUpdate() {
     setCursor(tmpCharacter.y, 3 - tmpCharacter.x);
     write(tmpCharacter.type);
 
+    lcdWriteCount++;
+    lcdWriteCount++;
     /*  setCursor(7, 0);
       sprintf(lcdStr, "%lu", score);
       print(lcdStr);*/
+    return lcdWriteCount;
 }
