@@ -85,7 +85,7 @@ const osThreadAttr_t getVolumeTsk_attributes = {
 osThreadId_t updateLcdTskHandle;
 const osThreadAttr_t updateLcdTsk_attributes = {
         .name = "updateLcdTsk",
-        .stack_size = 200 * 4,
+        .stack_size = 800 * 4,
         .priority = (osPriority_t) osPriorityNormal2,
 };
 /* Definitions for update7SegTsk */
@@ -101,6 +101,11 @@ const osThreadAttr_t playMelodyTsk_attributes = {
         .name = "playMelodyTsk",
         .stack_size = 128 * 4,
         .priority = (osPriority_t) osPriorityNormal1,
+};
+/* Definitions for melodyNameQu */
+osMessageQueueId_t melodyNameQuHandle;
+const osMessageQueueAttr_t melodyNameQu_attributes = {
+        .name = "melodyNameQu"
 };
 /* Definitions for uartMutex */
 osMutexId_t uartMutexHandle;
@@ -213,10 +218,10 @@ int main(void) {
 
     /* Create the semaphores(s) */
     /* creation of keypadSem */
-    keypadSemHandle = osSemaphoreNew(1, 1, &keypadSem_attributes);
+    keypadSemHandle = osSemaphoreNew(1, 0, &keypadSem_attributes);
 
     /* creation of volumeSem */
-    volumeSemHandle = osSemaphoreNew(1, 1, &volumeSem_attributes);
+    volumeSemHandle = osSemaphoreNew(1, 0, &volumeSem_attributes);
 
     /* creation of uartDmaSem */
     uartDmaSemHandle = osSemaphoreNew(1, 1, &uartDmaSem_attributes);
@@ -230,8 +235,15 @@ int main(void) {
     /* start timers, add new ones, ... */
     /* USER CODE END RTOS_TIMERS */
 
+    /* Create the queue(s) */
+    /* creation of melodyNameQu */
+    melodyNameQuHandle = osMessageQueueNew(10, 4, &melodyNameQu_attributes);
+
     /* USER CODE BEGIN RTOS_QUEUES */
     /* add queues, ... */
+
+
+
     /* USER CODE END RTOS_QUEUES */
 
     /* Create the thread(s) */
@@ -805,7 +817,6 @@ void StartDefaultTask(void *argument) {
         //osSemaphoreAcquire(uartDmaSemHandle, osWaitForever);
         //HAL_UART_Transmit_DMA(&huart2, (uint8_t *) defaultStr, strlen(defaultStr));
         HAL_GPIO_TogglePin(GPIOE, GPIO_PIN_14);
-        score++;
 
         osDelay(1000);
     }
@@ -823,16 +834,15 @@ void StartDefaultTask(void *argument) {
 void StartUartTxTsk(void *argument) {
     /* USER CODE BEGIN StartUartTxTsk */
     char uartStr[100];
-    osThreadSuspend(updateLcdTskHandle);
     /* Infinite loop */
     for (;;) {
         osSemaphoreAcquire(keypadSemHandle, osWaitForever);
         if (keypadNum == 16) {
             srand(osKernelGetTickCount());
             osThreadResume(updateLcdTskHandle);
-        }else if(keypadNum == 5){
+        } else if (keypadNum == 5) {
             doodlerMoveLeft();
-        }else if(keypadNum == 7){
+        } else if (keypadNum == 7) {
             doodlerMoveRight();
         }
         HAL_GPIO_TogglePin(GPIOE, GPIO_PIN_8);
@@ -882,19 +892,32 @@ void StartGetVolumeTsk(void *argument) {
 /* USER CODE END Header_StartUpdateLcdTsk */
 void StartUpdateLcdTsk(void *argument) {
     /* USER CODE BEGIN StartUpdateLcdTsk */
+    osThreadSuspend(updateLcdTskHandle);
     char lcdStr[100];
+    int writeCount;
+    int maxCount = 0;
     lcdInit();
     charactersInit();
 //    lcdInitFirst();
     lcdUpdate();
+    gameStart();
+    uint32_t startTime;
+    uint32_t duration;
+    int delay;
     /* Infinite loop */
     for (;;) {
-        sprintf(lcdStr, "lcd Write Count: %d\n", handleGame());
+        startTime = osKernelGetTickCount();
+        writeCount = handleGame();
+        if (writeCount > maxCount)
+            maxCount = writeCount;
+        duration = osKernelGetTickCount() - startTime;
+        sprintf(lcdStr, "lcd Max Write Count: %d | duration %lu\n", writeCount,
+                duration);//, duration - writeCount * 12);
 
         osSemaphoreAcquire(uartDmaSemHandle, osWaitForever);
         HAL_UART_Transmit_DMA(&huart2, (uint8_t *) lcdStr, strlen(lcdStr));
-
-        osDelay(300);
+        delay = 480 - writeCount * 12;
+        osDelay(delay);
     }
     /* USER CODE END StartUpdateLcdTsk */
 }
@@ -910,7 +933,7 @@ void StartUpdate7SegTsk(void *argument) {
     /* USER CODE BEGIN StartUpdate7SegTsk */
     /* Infinite loop */
     for (;;) {
-        update7Segment(score, difficulty);
+        update7Segment(getScore(), difficulty);
         osDelay(1);
     }
     /* USER CODE END StartUpdate7SegTsk */
@@ -926,9 +949,14 @@ void StartUpdate7SegTsk(void *argument) {
 void StartPlayMelodyTsk(void *argument) {
     /* USER CODE BEGIN StartPlayMelodyTsk */
     /* Infinite loop */
+    osStatus_t status;
+    melodyName melodyToPlay;
     for (;;) {
-        buzzerPlay();
-        // osDelay(1);
+        status = osMessageQueueGet(melodyNameQuHandle, &melodyToPlay, NULL, osWaitForever);
+        if (status == osOK) {
+            buzzerMelodyPlay(melodyToPlay);
+        }
+
     }
     /* USER CODE END StartPlayMelodyTsk */
 }

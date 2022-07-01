@@ -6,6 +6,7 @@
 #include "lcd.h"
 #include "keypad.h"
 #include "buzzer.h"
+#include "cmsis_os.h"
 
 void programInit() {
     buzzerInit();

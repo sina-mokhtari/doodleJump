@@ -10,25 +10,28 @@
 extern byte doodlerUpByte[], doodlerDownByte[], normalStepByte[], brokenStepByte[], springStepByte[], monsterByte[], holeByte[];
 
 typedef enum {
-    DEFAULT_CHARACTER_TYPE,
-    AIR = (uint_fast8_t) 0x20,
-    DOODLER_UP = (uint_fast8_t) 0,
-    DOODLER_DOWN = (uint_fast8_t) 1,
-    NORMAL_STEP = (uint_fast8_t) 2,
-    BROKEN_STEP = (uint_fast8_t) 3,
-    SPRING_STEP = (uint_fast8_t) 4,
-    MONSTER = (uint_fast8_t) 5,
-    HOLE = (uint_fast8_t) 6,
-    BULLET = (uint_fast8_t) 0xa5
+    DefaultCharacterType,
+    Air = (uint_fast8_t) 0x20,
+    DoodlerUp = (uint_fast8_t) 0,
+    DoodlerDown = (uint_fast8_t) 1,
+    NormalStep = (uint_fast8_t) 2,
+    BrokenStep = (uint_fast8_t) 3,
+    SpringStep = (uint_fast8_t) 4,
+    Monster = (uint_fast8_t) 5,
+    BlackHole = (uint_fast8_t) 6,
+    Bullet = (uint_fast8_t) 0xa5
 } characterType;
 
 typedef struct {
     characterType type;
     uint_fast8_t x;
     uint_fast8_t y;
-} Character;
+} character;
 
-extern Character characters[82];
+extern character characters[80];
+extern character doodler[2];
+
+
 
 void shiftDownCharacters(uint32_t shiftStep);
 

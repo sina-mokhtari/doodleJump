@@ -7,28 +7,35 @@
 #include "characters.h"
 #include "stdbool.h"
 #include "lcd.h"
+#include "buzzer.h"
+
+#define JUMP_LITTLE 0
+#define JUMP_BIG 1
+
+uint32_t score = 0;
+character *lastStep;
 
 doodlerMoveModeType doodlerMoveMode = DESCENDING;
-uint32_t shiftUpCount = 7;
+uint32_t shiftUpCount = 0;
 
 bool monsterCollision() {
-    if (lcdArr[characters[0].x][characters[0].y] == MONSTER)
+    if (lcdArr[doodler[0].x][doodler[0].y] == Monster ||
+        lcdArr[doodler[1].x][doodler[1].y] == Monster)
         return true;
-    else if (lcdArr[characters[1].x][characters[1].y] == MONSTER)
-        return true;
-    return false;
+    else
+        return false;
 }
 
 bool holeCollision() {
-    if (lcdArr[characters[0].x][characters[0].y] == HOLE)
+    if (lcdArr[doodler[0].x][doodler[0].y] == BlackHole ||
+        lcdArr[doodler[1].x][doodler[1].y] == BlackHole)
         return true;
-    else if (lcdArr[characters[1].x][characters[1].y] == HOLE)
-        return true;
-    return false;
+    else
+        return false;
 }
 
 bool fallCollision() {
-    if (characters[1].y >= 19)
+    if (doodler[1].y >= 19)
         return true;
     return false;
 }
@@ -38,65 +45,112 @@ void lose() {
 }
 
 void doodlerMoveUp() {
-    characters[0].y--;
-    characters[1].y--;
+    doodler[0].y--;
+    doodler[1].y--;
 }
 
 void doodlerMoveDown() {
-    characters[0].y++;
-    characters[1].y++;
+    doodler[0].y++;
+    doodler[1].y++;
 }
 
 void doodlerMoveLeft() {
-    if (characters[0].x > 0 || characters[1].x > 0) {
-        characters[0].x--;
-        characters[1].x--;
+    if (doodler[0].x > 0 || doodler[1].x > 0) {
+        doodler[0].x--;
+        doodler[1].x--;
     } else {
-        characters[0].x = 3;
-        characters[1].x = 3;
+        doodler[0].x = 3;
+        doodler[1].x = 3;
     }
 }
 
 void doodlerMoveRight() {
-    if (characters[0].x < 3 || characters[1].x < 3) {
-        characters[0].x++;
-        characters[1].x++;
+    if (doodler[0].x < 3 || doodler[1].x < 3) {
+        doodler[0].x++;
+        doodler[1].x++;
     } else {
-        characters[0].x = 0;
-        characters[1].x = 0;
+        doodler[0].x = 0;
+        doodler[1].x = 0;
     }
 }
 
+character *findCharacter(uint_fast8_t x, uint_fast8_t y) {
+    for (int i = 0; i < 80; i++) {
+        if (characters[i].y == y &&
+            characters[i].x == x) {
+            return &characters[i];
+        }
+    }
+    return NULL;
+}
+
+character *characterTmp;
+melodyName melodyToPlay;
+
+void doodlerJump(int n, uint_fast8_t stepX, uint_fast8_t stepY) {
+    doodlerMoveMode = ASCENDING;
+    shiftUpCount = n - 1;
+    doodlerMoveUp();
+    characterTmp = findCharacter(stepX, stepY);
+    if (characterTmp != lastStep) {
+        addScore();
+        if (n == 7)
+            melodyToPlay = JumpLittle;
+        else
+            melodyToPlay = JumpBig;
+
+        osMessageQueuePut(melodyNameQuHandle, &melodyToPlay, 0U, 10);
+        lastStep = characterTmp;
+        return;
+    }
+}
+
+
+bool doodlerReachedMiddle() {
+    return doodler[0].y <= 9;
+}
+
+uint32_t getScore() {
+    return score;
+}
+
+void addScore() {
+    score += difficulty + 1;
+}
+
 void doodlerSwapCheck() {
-    if (characters[0].x < 0 || characters[1].x < 0) {
-        characters[0].x = 3;
-        characters[1].x = 3;
-    } else if (characters[0].x > 3 || characters[1].x > 3) {
-        characters[0].x = 0;
-        characters[1].x = 0;
+    if (doodler[0].x < 0 || doodler[1].x < 0) {
+        doodler[0].x = 3;
+        doodler[1].x = 3;
+    } else if (doodler[0].x > 3 || doodler[1].x > 3) {
+        doodler[0].x = 0;
+        doodler[1].x = 0;
     }
 }
 
 
 bool stepCollision() {
-    if (lcdArr[characters[1].y + 1][characters[1].x] == NORMAL_STEP) {
-        doodlerMoveMode = ASCENDING;
-        shiftUpCount = 7;
+    if (lcdArr[doodler[1].y + 1][doodler[1].x] == NormalStep) {
+        doodlerJump(7, doodler[1].x, doodler[1].y + 1);
         return true;
-    } else if (lcdArr[characters[1].y + 1][characters[1].x] == SPRING_STEP) {
-        doodlerMoveMode = ASCENDING;
-        shiftUpCount = 20;
+    } else if (lcdArr[doodler[1].y + 1][doodler[1].x] == SpringStep) {
+        doodlerJump(20, doodler[1].x, doodler[1].y + 1);
         return true;
-    } else if (lcdArr[characters[1].y + 1][characters[1].x] == BROKEN_STEP) {
-        for (int i = 2; i < 82; i++) {
-            if (characters[i].x == characters[1].x && characters[i].y == (characters[1].y + 1) &&
-                characters[i].type == BROKEN_STEP) {
-                characters[i] = (Character) {AIR, characters[i].x, characters[i].y};
+    } else if (lcdArr[doodler[1].y + 1][doodler[1].x] == BrokenStep) {
+        for (int i = 0; i < 80; i++) {
+            if (characters[i].x == doodler[1].x && characters[i].y == (doodler[1].y + 1) &&
+                characters[i].type == BrokenStep) {
+                characters[i] = (character) {Air, characters[i].x, characters[i].y};
                 return false;
             }
         }
     }
     return false;
+}
+
+
+void gameStart() {
+   // buzzerMelodyIntro();
 }
 
 int handleGame() {
@@ -109,24 +163,18 @@ int handleGame() {
     //doodlerSwapCheck();
 
     if (doodlerMoveMode == ASCENDING) {
-        if (characters[0].y <= 9) {
-            if (shiftUpCount > 0) {
+        if (shiftUpCount > 0) {
+            if (doodlerReachedMiddle())
                 shiftDownCharacters(1);
-                shiftUpCount--;
-            } else {
-                doodlerMoveMode = DESCENDING;
-            }
-
-        } else {
-            doodlerMoveUp();
+            else
+                doodlerMoveUp();
             shiftUpCount--;
-        }
-    } else {
-        if (!stepCollision()) {
-            doodlerMoveDown();
-        }
+        } else
+            doodlerMoveMode = DESCENDING;
 
-    }
+    } else if (!stepCollision())
+        doodlerMoveDown();
 
-    return lcdUpdate();
+
+  return lcdUpdate();
 }

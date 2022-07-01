@@ -1,5 +1,5 @@
 /*
- * LiquidCrystal.h - LiquidCrystal Library for STM32 ARM microcontrollers
+ * LiquidCrystal.h - liquidCrystal Library for STM32 ARM microcontrollers
  *
  *  Created on: April 12, 2018
  *      Author: S. Saeed Hosseini (sayidhosseini@hotmail.com)
@@ -51,13 +51,13 @@
 
 // low-level functions
 void send(uint8_t, GPIO_PinState);
-void write4bits(uint8_t);
-void write8bits(uint8_t);
+void write4Bits(uint8_t value);
+void write8Bits(uint8_t value);
 void pulseEnable(void);
 
 // initializers
-void LiquidCrystal(GPIO_TypeDef *gpioport, uint16_t rs, uint16_t rw, uint16_t enable,
-  uint16_t d0, uint16_t d1, uint16_t d2, uint16_t d3);
+void liquidCrystal(GPIO_TypeDef *gpioport, uint16_t rs, uint16_t rw, uint16_t enable,
+                   uint16_t d0, uint16_t d1, uint16_t d2, uint16_t d3);
 
 void init(uint8_t fourbitmode, GPIO_TypeDef *gpioport, uint16_t rs, uint16_t rw, uint16_t enable,
     uint16_t d0, uint16_t d1, uint16_t d2, uint16_t d3,

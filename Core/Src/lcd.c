@@ -11,10 +11,10 @@
 
 char lcdStr[100];
 
-characterType lcdArr[20][4] = {DEFAULT_CHARACTER_TYPE};
+characterType lcdArr[20][4] = {DefaultCharacterType};
 
 void lcdInit() {
-    LiquidCrystal(GPIOD, LCD_D8, LCD_D9, LCD_D10, LCD_D11, LCD_D12, LCD_D13,
+    liquidCrystal(GPIOD, LCD_D8, LCD_D9, LCD_D10, LCD_D11, LCD_D12, LCD_D13,
                   LCD_D14);
     begin(20, 4);
     createChar(0, doodlerUpByte);
@@ -31,37 +31,34 @@ void lcdTest() {
     print("yess");
 }
 
-Character tmpCharacter;
+character tmpCharacter;
 
 int lcdWriteCount;
 
 int lcdUpdate() {
-    lcdWriteCount = 0;
+    lcdWriteCount = 2;
 
     // refreshing lcd
-    for (int i = 2; i < 82; i++) {
+    for (int i = 0; i < 80; i++) {
         tmpCharacter = characters[i];
-        if (lcdArr[tmpCharacter.y][tmpCharacter.x] != tmpCharacter.type) {
+        if (lcdArr[tmpCharacter.y][tmpCharacter.x] != tmpCharacter.type &&
+            !(tmpCharacter.y == doodler[0].y && tmpCharacter.x == doodler[0].x) ||
+            (tmpCharacter.y == doodler[1].y && tmpCharacter.x == doodler[1].x)) {
             lcdArr[tmpCharacter.y][tmpCharacter.x] = tmpCharacter.type;
             setCursor(tmpCharacter.y, 3 - tmpCharacter.x);
             write(tmpCharacter.type);
             lcdWriteCount++;
         }
     }
-    tmpCharacter = characters[0];
+    tmpCharacter = doodler[0];
     lcdArr[tmpCharacter.y][tmpCharacter.x] = tmpCharacter.type;
     setCursor(tmpCharacter.y, 3 - tmpCharacter.x);
     write(tmpCharacter.type);
 
-    tmpCharacter = characters[1];
+    tmpCharacter = doodler[1];
     lcdArr[tmpCharacter.y][tmpCharacter.x] = tmpCharacter.type;
     setCursor(tmpCharacter.y, 3 - tmpCharacter.x);
     write(tmpCharacter.type);
 
-    lcdWriteCount++;
-    lcdWriteCount++;
-    /*  setCursor(7, 0);
-      sprintf(lcdStr, "%lu", score);
-      print(lcdStr);*/
     return lcdWriteCount;
 }

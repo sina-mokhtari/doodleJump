@@ -11,7 +11,7 @@
 #define VOLUME_FILTERING_SAMPLE_NUM 16
 #define ADC_DELAY 20
 
-void handleVolume(ADC_HandleTypeDef *hadc);
+void handleVolume(ADC_HandleTypeDef *adc);
 void adcInit();
 
 #endif //DOODLEJUMP_ADC_H

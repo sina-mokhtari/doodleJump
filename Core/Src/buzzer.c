@@ -6,34 +6,9 @@
 #include "buzzer.h"
 #include "cmsis_os.h"
 
-TIM_HandleTypeDef *buzzerPwmTimer = &htim8;
-uint32_t buzzerPwmChannel = TIM_CHANNEL_1;
+#define DEFAULT_VOLUME 1
 
-void buzzerChangeTone(uint16_t freq, uint16_t volume) {
-    if (freq == 0 || freq > 20000) {
-        __HAL_TIM_SET_COMPARE(buzzerPwmTimer, buzzerPwmChannel, 0);
-    } else {
-        const uint32_t internalClockFreq = HAL_RCC_GetSysClockFreq();
-        const uint32_t prescaler = 1 + internalClockFreq / freq / 60000;
-        const uint32_t timerClock = internalClockFreq / prescaler;
-        const uint32_t periodCycles = timerClock / freq;
-        const uint32_t pulseWidth = volume * periodCycles / 1000 / 2;
 
-        buzzerPwmTimer->Instance->PSC = prescaler - 1;
-        buzzerPwmTimer->Instance->ARR = periodCycles - 1;
-        buzzerPwmTimer->Instance->EGR = TIM_EGR_UG;
-
-        __HAL_TIM_SET_COMPARE(buzzerPwmTimer, buzzerPwmChannel, pulseWidth);
-    }
-}
-
-void buzzerInit() {
-    HAL_TIM_PWM_Start(buzzerPwmTimer, buzzerPwmChannel);
-}
-/*
- *
- *
- * */
 #define NOTE_B0  31
 #define NOTE_C1  33
 #define NOTE_CS1 35
@@ -125,114 +100,155 @@ void buzzerInit() {
 #define NOTE_DS8 4978
 #define REST      0
 
+TIM_HandleTypeDef *buzzerPwmTimer = &htim8;
+uint32_t buzzerPwmChannel = TIM_CHANNEL_1;
 
-int melody[] = {
+void buzzerChangeTone(uint16_t freq, uint16_t volume) {
+    if (freq == 0 || freq > 20000) {
+        __HAL_TIM_SET_COMPARE(buzzerPwmTimer, buzzerPwmChannel, 0);
+    } else {
+        const uint32_t internalClockFreq = HAL_RCC_GetSysClockFreq();
+        const uint32_t prescaler = 1 + internalClockFreq / freq / 60000;
+        const uint32_t timerClock = internalClockFreq / prescaler;
+        const uint32_t periodCycles = timerClock / freq;
+        const uint32_t pulseWidth = volume * periodCycles / 1000 / 2;
 
-        // Super Mario Bros theme
-        // Score available at https://musescore.com/user/2123/scores/2145
-        // Theme by Koji Kondo
+        buzzerPwmTimer->Instance->PSC = prescaler - 1;
+        buzzerPwmTimer->Instance->ARR = periodCycles - 1;
+        buzzerPwmTimer->Instance->EGR = TIM_EGR_UG;
+
+        __HAL_TIM_SET_COMPARE(buzzerPwmTimer, buzzerPwmChannel, pulseWidth);
+    }
+}
+
+void buzzerInit() {
+    HAL_TIM_PWM_Start(buzzerPwmTimer, buzzerPwmChannel);
+}
 
 
-        NOTE_E5, 8, NOTE_E5, 8, REST, 8, NOTE_E5, 8, REST, 8, NOTE_C5, 8, NOTE_E5, 8, //1
-        NOTE_G5, 4, REST, 4, NOTE_G4, 8, REST, 4,
-        NOTE_C5, -4, NOTE_G4, 8, REST, 4, NOTE_E4, -4, // 3
-        NOTE_A4, 4, NOTE_B4, 4, NOTE_AS4, 8, NOTE_A4, 4,
-        NOTE_G4, -8, NOTE_E5, -8, NOTE_G5, -8, NOTE_A5, 4, NOTE_F5, 8, NOTE_G5, 8,
-        REST, 8, NOTE_E5, 4, NOTE_C5, 8, NOTE_D5, 8, NOTE_B4, -4,
-        NOTE_C5, -4, NOTE_G4, 8, REST, 4, NOTE_E4, -4, // repeats from 3
-        NOTE_A4, 4, NOTE_B4, 4, NOTE_AS4, 8, NOTE_A4, 4,
-        NOTE_G4, -8, NOTE_E5, -8, NOTE_G5, -8, NOTE_A5, 4, NOTE_F5, 8, NOTE_G5, 8,
-        REST, 8, NOTE_E5, 4, NOTE_C5, 8, NOTE_D5, 8, NOTE_B4, -4,
+const int introMelody[] = {
+        NOTE_E7, NOTE_E7, 0, NOTE_E7,
+        0, NOTE_C7, NOTE_E7, 0,
+        NOTE_G7, 0, 0, 0,
+        NOTE_G6, 0, 0, 0,
 
+        NOTE_C7, 0, 0, NOTE_G6,
+        0, 0, NOTE_E6, 0,
+        0, NOTE_A6, 0, NOTE_B6,
+        0, NOTE_AS6, NOTE_A6, 0,
 
-        REST, 4, NOTE_G5, 8, NOTE_FS5, 8, NOTE_F5, 8, NOTE_DS5, 4, NOTE_E5, 8,//7
-        REST, 8, NOTE_GS4, 8, NOTE_A4, 8, NOTE_C4, 8, REST, 8, NOTE_A4, 8, NOTE_C5, 8, NOTE_D5, 8,
-        REST, 4, NOTE_DS5, 4, REST, 8, NOTE_D5, -4,
-        NOTE_C5, 2, REST, 2,
+        NOTE_G6, NOTE_E7, NOTE_G7,
+        NOTE_A7, 0, NOTE_F7, NOTE_G7,
+        0, NOTE_E7, 0, NOTE_C7,
+        NOTE_D7, NOTE_B6, 0, 0,
 
-        REST, 4, NOTE_G5, 8, NOTE_FS5, 8, NOTE_F5, 8, NOTE_DS5, 4, NOTE_E5, 8,//repeats from 7
-        REST, 8, NOTE_GS4, 8, NOTE_A4, 8, NOTE_C4, 8, REST, 8, NOTE_A4, 8, NOTE_C5, 8, NOTE_D5, 8,
-        REST, 4, NOTE_DS5, 4, REST, 8, NOTE_D5, -4,
-        NOTE_C5, 2, REST, 2,
+        NOTE_C7, 0, 0, NOTE_G6,
+        0, 0, NOTE_E6, 0,
+        0, NOTE_A6, 0, NOTE_B6,
+        0, NOTE_AS6, NOTE_A6, 0,
 
-        NOTE_C5, 8, NOTE_C5, 4, NOTE_C5, 8, REST, 8, NOTE_C5, 8, NOTE_D5, 4,//11
-        NOTE_E5, 8, NOTE_C5, 4, NOTE_A4, 8, NOTE_G4, 2,
-
-        NOTE_C5, 8, NOTE_C5, 4, NOTE_C5, 8, REST, 8, NOTE_C5, 8, NOTE_D5, 8, NOTE_E5, 8,//13
-        REST, 1,
-        NOTE_C5, 8, NOTE_C5, 4, NOTE_C5, 8, REST, 8, NOTE_C5, 8, NOTE_D5, 4,
-        NOTE_E5, 8, NOTE_C5, 4, NOTE_A4, 8, NOTE_G4, 2,
-        NOTE_E5, 8, NOTE_E5, 8, REST, 8, NOTE_E5, 8, REST, 8, NOTE_C5, 8, NOTE_E5, 4,
-        NOTE_G5, 4, REST, 4, NOTE_G4, 4, REST, 4,
-        NOTE_C5, -4, NOTE_G4, 8, REST, 4, NOTE_E4, -4, // 19
-
-        NOTE_A4, 4, NOTE_B4, 4, NOTE_AS4, 8, NOTE_A4, 4,
-        NOTE_G4, -8, NOTE_E5, -8, NOTE_G5, -8, NOTE_A5, 4, NOTE_F5, 8, NOTE_G5, 8,
-        REST, 8, NOTE_E5, 4, NOTE_C5, 8, NOTE_D5, 8, NOTE_B4, -4,
-
-        NOTE_C5, -4, NOTE_G4, 8, REST, 4, NOTE_E4, -4, // repeats from 19
-        NOTE_A4, 4, NOTE_B4, 4, NOTE_AS4, 8, NOTE_A4, 4,
-        NOTE_G4, -8, NOTE_E5, -8, NOTE_G5, -8, NOTE_A5, 4, NOTE_F5, 8, NOTE_G5, 8,
-        REST, 8, NOTE_E5, 4, NOTE_C5, 8, NOTE_D5, 8, NOTE_B4, -4,
-
-        NOTE_E5, 8, NOTE_C5, 4, NOTE_G4, 8, REST, 4, NOTE_GS4, 4,//23
-        NOTE_A4, 8, NOTE_F5, 4, NOTE_F5, 8, NOTE_A4, 2,
-        NOTE_D5, -8, NOTE_A5, -8, NOTE_A5, -8, NOTE_A5, -8, NOTE_G5, -8, NOTE_F5, -8,
-
-        NOTE_E5, 8, NOTE_C5, 4, NOTE_A4, 8, NOTE_G4, 2, //26
-        NOTE_E5, 8, NOTE_C5, 4, NOTE_G4, 8, REST, 4, NOTE_GS4, 4,
-        NOTE_A4, 8, NOTE_F5, 4, NOTE_F5, 8, NOTE_A4, 2,
-        NOTE_B4, 8, NOTE_F5, 4, NOTE_F5, 8, NOTE_F5, -8, NOTE_E5, -8, NOTE_D5, -8,
-        NOTE_C5, 8, NOTE_E4, 4, NOTE_E4, 8, NOTE_C4, 2,
-
-        NOTE_E5, 8, NOTE_C5, 4, NOTE_G4, 8, REST, 4, NOTE_GS4, 4,//repeats from 23
-        NOTE_A4, 8, NOTE_F5, 4, NOTE_F5, 8, NOTE_A4, 2,
-        NOTE_D5, -8, NOTE_A5, -8, NOTE_A5, -8, NOTE_A5, -8, NOTE_G5, -8, NOTE_F5, -8,
-
-        NOTE_E5, 8, NOTE_C5, 4, NOTE_A4, 8, NOTE_G4, 2, //26
-        NOTE_E5, 8, NOTE_C5, 4, NOTE_G4, 8, REST, 4, NOTE_GS4, 4,
-        NOTE_A4, 8, NOTE_F5, 4, NOTE_F5, 8, NOTE_A4, 2,
-        NOTE_B4, 8, NOTE_F5, 4, NOTE_F5, 8, NOTE_F5, -8, NOTE_E5, -8, NOTE_D5, -8,
-        NOTE_C5, 8, NOTE_E4, 4, NOTE_E4, 8, NOTE_C4, 2,
-        NOTE_C5, 8, NOTE_C5, 4, NOTE_C5, 8, REST, 8, NOTE_C5, 8, NOTE_D5, 8, NOTE_E5, 8,
-        REST, 1,
-
-        NOTE_C5, 8, NOTE_C5, 4, NOTE_C5, 8, REST, 8, NOTE_C5, 8, NOTE_D5, 4, //33
-        NOTE_E5, 8, NOTE_C5, 4, NOTE_A4, 8, NOTE_G4, 2,
-        NOTE_E5, 8, NOTE_E5, 8, REST, 8, NOTE_E5, 8, REST, 8, NOTE_C5, 8, NOTE_E5, 4,
-        NOTE_G5, 4, REST, 4, NOTE_G4, 4, REST, 4,
-        NOTE_E5, 8, NOTE_C5, 4, NOTE_G4, 8, REST, 4, NOTE_GS4, 4,
-        NOTE_A4, 8, NOTE_F5, 4, NOTE_F5, 8, NOTE_A4, 2,
-        NOTE_D5, -8, NOTE_A5, -8, NOTE_A5, -8, NOTE_A5, -8, NOTE_G5, -8, NOTE_F5, -8,
-
-        NOTE_E5, 8, NOTE_C5, 4, NOTE_A4, 8, NOTE_G4, 2, //40
-        NOTE_E5, 8, NOTE_C5, 4, NOTE_G4, 8, REST, 4, NOTE_GS4, 4,
-        NOTE_A4, 8, NOTE_F5, 4, NOTE_F5, 8, NOTE_A4, 2,
-        NOTE_B4, 8, NOTE_F5, 4, NOTE_F5, 8, NOTE_F5, -8, NOTE_E5, -8, NOTE_D5, -8,
-        NOTE_C5, 8, NOTE_E4, 4, NOTE_E4, 8, NOTE_C4, 2,
-
-        //game over sound
-        NOTE_C5, -4, NOTE_G4, -4, NOTE_E4, 4, //45
-        NOTE_A4, -8, NOTE_B4, -8, NOTE_A4, -8, NOTE_GS4, -8, NOTE_AS4, -8, NOTE_GS4, -8,
-        NOTE_G4, 8, NOTE_D4, 8, NOTE_E4, -2,
-
+        NOTE_G6, NOTE_E7, NOTE_G7,
+        NOTE_A7, 0, NOTE_F7, NOTE_G7,
+        0, NOTE_E7, 0, NOTE_C7,
+        NOTE_D7, NOTE_B6, 0, 0
 };
 
-void buzzerPlay() {
+const int introMelodyTempo[] = {
+        132, 132, 132, 132,
+        132, 132, 132, 132,
+        132, 132, 132, 132,
+        132, 132, 132, 132,
 
-    for (int i = 0; i < 212; i += 2) {
-      //  buzzerChangeTone(melody[i], 10);
-        osDelay(200);
-        if (i == 12) {
-            buzzerChangeTone(REST, 10);
-            osDelay(300);
-        } else if (i == 16 || i == 20)
-            osDelay(200);
+        132, 132, 132, 132,
+        132, 132, 132, 132,
+        132, 132, 132, 132,
+        132, 132, 132, 154,
+
+        143, 143, 143,//
+        132, 132, 132, 132,
+        132, 132, 132, 132,
+        132, 132, 132, 275,
+
+        132, 132, 132, 132,
+        132, 132, 132, 132,
+        132, 132, 132, 132,
+        132, 132, 132, 154,
+
+        143, 143, 143,//
+        132, 132, 132, 132,
+        132, 132, 132, 132,
+        132, 132, 132, 275,
+};
+
+void buzzerMelodyJumpLittle() {
+    buzzerChangeTone(NOTE_B5, DEFAULT_VOLUME);
+    osDelay(100);
+    buzzerChangeTone(NOTE_E6, DEFAULT_VOLUME);
+    osDelay(400);
+    buzzerChangeTone(REST, 0);
+}
+
+void buzzerMelodyJumpBig() {
+    buzzerChangeTone(NOTE_B5, DEFAULT_VOLUME);
+    osDelay(100);
+    buzzerChangeTone(NOTE_G6, DEFAULT_VOLUME);
+    osDelay(400);
+    buzzerChangeTone(REST, 0);
+}
+
+void buzzerMelody1Up() {
+    buzzerChangeTone(NOTE_E6, DEFAULT_VOLUME);
+    osDelay(130);
+    buzzerChangeTone(NOTE_G6, DEFAULT_VOLUME);
+    osDelay(130);
+    buzzerChangeTone(NOTE_E7, DEFAULT_VOLUME);
+    osDelay(130);
+    buzzerChangeTone(NOTE_C7, DEFAULT_VOLUME);
+    osDelay(130);
+    buzzerChangeTone(NOTE_D7, DEFAULT_VOLUME);
+    osDelay(130);
+    buzzerChangeTone(NOTE_G7, DEFAULT_VOLUME);
+    osDelay(125);
+    buzzerChangeTone(REST, 0);
+}
+
+void buzzerMelodyFireBall() {
+    buzzerChangeTone(NOTE_G4, DEFAULT_VOLUME);
+    osDelay(35);
+    buzzerChangeTone(NOTE_G5, DEFAULT_VOLUME);
+    osDelay(35);
+    buzzerChangeTone(NOTE_G6, DEFAULT_VOLUME);
+    osDelay(35);
+    buzzerChangeTone(REST, 0);
+}
+
+void buzzerMelodyIntro() {
+    for (int i = 0; i < 78; i++) {
+        buzzerChangeTone(introMelody[i], DEFAULT_VOLUME);
+        osDelay(introMelodyTempo[i]);
     }
-    buzzerChangeTone(0, 0);
-    osDelay(10000);
-    // buzzerChangeTone(880, 1000);
-    //osDelay(1500);
-    // buzzerChangeTone(880,0);
-    // osDelay(1500);
+    buzzerChangeTone(REST, 0);
+}
+
+void buzzerMelodyPlay(melodyName melodyToPlay) {
+
+    switch (melodyToPlay) {
+        case Intro:
+            buzzerMelodyIntro();
+            break;
+        case JumpBig:
+            buzzerMelodyJumpBig();
+            break;
+        case JumpLittle:
+            buzzerMelodyJumpLittle();
+            break;
+        case FireBall:
+            buzzerMelodyFireBall();
+            break;
+        case OneUp:
+            buzzerMelody1Up();
+            break;
+        default:
+            break;
+    }
 }
