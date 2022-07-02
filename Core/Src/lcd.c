@@ -33,7 +33,7 @@ void lcdTest() {
 
 character tmpCharacter;
 
-int lcdWriteCount;
+int lcdWriteCount = 0;
 
 int lcdUpdate() {
     lcdWriteCount = 2;

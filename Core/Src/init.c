@@ -10,6 +10,7 @@
 
 void programInit() {
     buzzerInit();
+    //HAL_UART_Transmit(&huart2, (uint8_t *) "test", 10, 100);
     for (int i = 0; i < 4; i++)
         HAL_GPIO_WritePin(Column_ports[i], Column_pins[i], GPIO_PIN_SET);
 }

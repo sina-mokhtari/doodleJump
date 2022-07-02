@@ -894,7 +894,7 @@ void StartUpdateLcdTsk(void *argument) {
     /* USER CODE BEGIN StartUpdateLcdTsk */
     osThreadSuspend(updateLcdTskHandle);
     char lcdStr[100];
-    int writeCount;
+    int writeCount = 0;
     int maxCount = 0;
     lcdInit();
     charactersInit();
@@ -903,7 +903,7 @@ void StartUpdateLcdTsk(void *argument) {
     gameStart();
     uint32_t startTime;
     uint32_t duration;
-    int delay;
+    long int delay;
     /* Infinite loop */
     for (;;) {
         startTime = osKernelGetTickCount();
@@ -916,8 +916,8 @@ void StartUpdateLcdTsk(void *argument) {
 
         osSemaphoreAcquire(uartDmaSemHandle, osWaitForever);
         HAL_UART_Transmit_DMA(&huart2, (uint8_t *) lcdStr, strlen(lcdStr));
-        delay = 480 - writeCount * 12;
-        osDelay(delay);
+        delay =  480 - writeCount * 12;
+        osDelay(delay > 0 ? delay : 0);
     }
     /* USER CODE END StartUpdateLcdTsk */
 }

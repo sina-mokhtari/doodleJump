@@ -112,7 +112,7 @@ void charactersInit() {
 }
 
 characterType randomAdditional() {
-    /*for (int i = 0; i < 3; i++) {
+   /* for (int i = 0; i < 3; i++) {
         switch (rand() % 4) {
             case 0:
                 if (rand() % SUM_OF_PROBABILITIES < brokenStepProbability)
@@ -132,7 +132,8 @@ characterType randomAdditional() {
                 break;
         }
     }*/
-   /* if (rand() % SUM_OF_PROBABILITIES < brokenStepProbability)
+
+  /*  if (rand() % SUM_OF_PROBABILITIES < brokenStepProbability)
         return BrokenStep;
     else if (rand() % SUM_OF_PROBABILITIES < springStepProbability)
         return SpringStep;
@@ -151,29 +152,27 @@ bool foundRandom;
 void replaceNewCharacters(uint32_t n) {
 
     // this code is the problem
-   /*for (int i = 0; i <= n; i++) {
-        randArr[i].x = rand() % 4;
-
-        for (int j = 0; j < i; j++) {
+//   for (int i = 0; i < n; i++) {
+    //    randArr[i].x = rand() % 4;
+//randArr[i].x = i;
+       /* for (int j = 0; j < i; j++) {
             if (randArr[i].x == randArr[j].x) {
                 i--;
                 break;
             }
-        }
-        randArr[i].type = NormalStep;
-    }
+        }*/
+     //   randArr[i].type = NormalStep;
+    //}
 
-    randArr[n].type = randomAdditional();
+   /* randArr[n].type = randomAdditional();
 
     for (int i = 0, j = 0; j < 4 && i < 80; i++) {
         if (characters[i].y == 20) {
-            //if (k <= n) {
               foundRandom = false;
             for (int l = 0; l <= n; l++) {
                 if (j == randArr[l].x) {
                     characters[i] = (character) {randArr[l].type, j, 20};
                     foundRandom = true;
-                    //k++;
                     break;
                 }
             }
@@ -222,6 +221,7 @@ character generatedCharacters[4];
 uint_fast8_t distanceToLastStep;
 
 void generateCharacters() {
+
     if ((rand() % SUM_OF_PROBABILITIES) < generateProbability) { // generate
         if ((rand() % SUM_OF_PROBABILITIES) < twoStepProbability) // generate 2 steps
             replaceNewCharacters(2);
