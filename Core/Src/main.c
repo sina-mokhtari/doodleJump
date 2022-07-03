@@ -22,9 +22,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include <stdio.h>
-#include "stdlib.h"
-#include <string.h>
+#include <stdlib.h>
 #include "globals.h"
 #include "init.h"
 #include "keypad.h"
@@ -33,12 +31,10 @@
 #include "adc.h"
 #include "game.h"
 #include "buzzer.h"
+#include "uart.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
-/* USER CODE BEGIN PTD */
-uint32_t tsts;
-int myFlag = 1;
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -85,7 +81,7 @@ const osThreadAttr_t getVolumeTsk_attributes = {
 osThreadId_t updateLcdTskHandle;
 const osThreadAttr_t updateLcdTsk_attributes = {
         .name = "updateLcdTsk",
-        .stack_size = 800 * 4,
+        .stack_size = 1000 * 4,
         .priority = (osPriority_t) osPriorityNormal2,
 };
 /* Definitions for update7SegTsk */
@@ -202,8 +198,6 @@ int main(void) {
     /* USER CODE BEGIN 2 */
     programInit();
 
-    //HAL_UART_Transmit_DMA(&huart2, (uint8_t *) abc, strlen(abc));
-    //HAL_UART_Transmit(&huart2, (uint8_t *) abc, strlen(abc),100);
     /* USER CODE END 2 */
 
     /* Init scheduler */
@@ -279,14 +273,9 @@ int main(void) {
     /* We should never get here as control is now taken by the scheduler */
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
-    char abc[100];
-    sprintf(abc, "dma testtt...\n");
 
     while (1) {
-        while (myFlag == 0);
-        HAL_UART_Transmit_DMA(&huart2, (uint8_t *) abc, strlen(abc));
-        myFlag = 0;
-        HAL_Delay(500);
+
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */
@@ -719,71 +708,20 @@ static void MX_GPIO_Init(void) {
 }
 
 /* USER CODE BEGIN 4 */
-/*
-void StartUartTxTsk(void *argument)
-{
 
-char uartStr[100];
-for (;;) {
-osSemaphoreAcquire(keypadSemHandle, osWaitForever);
-
-HAL_GPIO_TogglePin(GPIOE, GPIO_PIN_8);
-
-sprintf(uartStr, "keypad: %lu\n", keypadNum);
-
-//osMutexAcquire(uartMutexHandle, osWaitForever);
-// HAL_GPIO_TogglePin(GPIOE,GPIO_PIN_11);
-tsts = osSemaphoreGetCount(uartDmaSemHandle);
-//osSemaphoreAcquire(uartDmaSemHandle, osWaitForever);
-
-//HAL_UART_Transmit_DMA(&huart2, (uint8_t *) uartStr, strlen(uartStr));
-
-}
-
-}
- //---------
-
- void StartUpdateLcdTsk(void *argument)
-{
-
-
-lcdInit();
-for (;;) {
-lcdUpdate();
-osDelay(1);
-}
-
-}
-
- //--------------
-
- void StartUpdate7SegTsk(void *argument)
-{
-
-for (;;) {
-update7Segment(score, difficulty);
-osDelay(1);
-}
-
-}
-
-
-
-*/
 uint32_t lastGpioExti = 0;
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
     if (lastGpioExti + 300 > osKernelGetTickCount())
         return;
 
-    handleKeypad(GPIO_Pin);
+    keypadAssign(GPIO_Pin);
     osSemaphoreRelease(keypadSemHandle);
     lastGpioExti = osKernelGetTickCount();
 }
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
     if (hadc->Instance == ADC1) { // volume
-        //HAL_GPIO_TogglePin(GPIOE,GPIO_PIN_9);
         osSemaphoreRelease(volumeSemHandle);
     }
 }
@@ -791,7 +729,6 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
     if (huart->Instance == USART2) {
         osSemaphoreRelease(uartDmaSemHandle);
-        //myFlag =1;
     }
 }
 /* USER CODE END 4 */
@@ -806,21 +743,13 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
 void StartDefaultTask(void *argument) {
     /* USER CODE BEGIN 5 */
     /* Infinite loop */
-    char defaultStr[100];
-    //buzzerChangeTone(1000,1000);
-    //sprintf(defaultStr, "from default\n");
-
-
     for (;;) {
 
 
-        //osSemaphoreAcquire(uartDmaSemHandle, osWaitForever);
-        //HAL_UART_Transmit_DMA(&huart2, (uint8_t *) defaultStr, strlen(defaultStr));
         HAL_GPIO_TogglePin(GPIOE, GPIO_PIN_14);
 
         osDelay(1000);
     }
-    osThreadTerminate(NULL);
     /* USER CODE END 5 */
 }
 
@@ -833,24 +762,14 @@ void StartDefaultTask(void *argument) {
 /* USER CODE END Header_StartUartTxTsk */
 void StartUartTxTsk(void *argument) {
     /* USER CODE BEGIN StartUartTxTsk */
-    char uartStr[100];
     /* Infinite loop */
     for (;;) {
         osSemaphoreAcquire(keypadSemHandle, osWaitForever);
-        if (keypadNum == 16) {
-            srand(osKernelGetTickCount());
-            osThreadResume(updateLcdTskHandle);
-        } else if (keypadNum == 5) {
-            doodlerMoveLeft();
-        } else if (keypadNum == 7) {
-            doodlerMoveRight();
-        }
+        keypadHandle();
+
         HAL_GPIO_TogglePin(GPIOE, GPIO_PIN_8);
 
-        sprintf(uartStr, "keypad: %lu\n", keypadNum);
-
-        osSemaphoreAcquire(uartDmaSemHandle, osWaitForever);
-        HAL_UART_Transmit_DMA(&huart2, (uint8_t *) uartStr, strlen(uartStr));
+        uartTransmit("keypad: %lu\n", keypadNum);
     }
     /* USER CODE END StartUartTxTsk */
 }
@@ -870,11 +789,7 @@ void StartGetVolumeTsk(void *argument) {
     for (;;) {
 
         osSemaphoreAcquire(volumeSemHandle, osWaitForever);
-        handleVolume(&hadc1);
-        //sprintf(adcStr, "volume: %lu\n", difficulty);
-
-        //osSemaphoreAcquire(uartDmaSemHandle, osWaitForever);
-        // HAL_UART_Transmit_DMA(&huart2, (uint8_t *) adcStr, strlen(adcStr));
+        volumeHandle(&hadc1);
 
         osDelay(200);
 
@@ -893,30 +808,34 @@ void StartGetVolumeTsk(void *argument) {
 void StartUpdateLcdTsk(void *argument) {
     /* USER CODE BEGIN StartUpdateLcdTsk */
     osThreadSuspend(updateLcdTskHandle);
-    char lcdStr[100];
-    int writeCount = 0;
+    int writeCount;
     int maxCount = 0;
     lcdInit();
     charactersInit();
-//    lcdInitFirst();
     lcdUpdate();
     gameStart();
     uint32_t startTime;
     uint32_t duration;
-    long int delay;
+    int delay;
+    int maxDelay = 0;
+    uint32_t remainedTime;
     /* Infinite loop */
     for (;;) {
         startTime = osKernelGetTickCount();
-        writeCount = handleGame();
+        writeCount = gameHandle();
+        duration = osKernelGetTickCount() - startTime;
+
+        remainedTime = duration - writeCount * 12;
+        delay = 480 - writeCount * 12;
+
         if (writeCount > maxCount)
             maxCount = writeCount;
-        duration = osKernelGetTickCount() - startTime;
-        sprintf(lcdStr, "lcd Max Write Count: %d | duration %lu\n", writeCount,
-                duration);//, duration - writeCount * 12);
+        if (delay > maxDelay)
+            maxDelay = delay;
 
-        osSemaphoreAcquire(uartDmaSemHandle, osWaitForever);
-        HAL_UART_Transmit_DMA(&huart2, (uint8_t *) lcdStr, strlen(lcdStr));
-        delay =  480 - writeCount * 12;
+        uartTransmit("writeCount: %d | maxCount: %d | duration %lu | remainedTime: %lu | delay:%d | maxDelay: %d \n",
+                     writeCount, maxCount, duration, remainedTime, delay, maxDelay);
+
         osDelay(delay > 0 ? delay : 0);
     }
     /* USER CODE END StartUpdateLcdTsk */

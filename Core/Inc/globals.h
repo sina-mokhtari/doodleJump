@@ -18,10 +18,12 @@ extern PCD_HandleTypeDef hpcd_USB_FS;
 
 extern osThreadId_t playMelodyTskHandle;
 extern osMessageQueueId_t melodyNameQuHandle;
+extern osThreadId_t updateLcdTskHandle;
+
+extern osSemaphoreId_t uartDmaSemHandle;
 
 extern uint32_t keypadNum;
 extern uint32_t difficulty;
-extern uint32_t probabilities[2];
 extern uint32_t generateProbability;
 extern uint32_t twoStepProbability;
 extern uint32_t springStepProbability;
@@ -30,10 +32,5 @@ extern uint32_t monsterProbability;
 extern uint32_t blackHoleProbability;
 
 
-
-extern char str[100];
-
-
-//extern uint_fast32_t volume;
 
 #endif //DOODLEJUMP_GLOBALS_H

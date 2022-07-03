@@ -7,12 +7,13 @@
 
 #include "requisite.h"
 
-extern GPIO_TypeDef *const Row_ports[];
-extern const uint16_t Row_pins[];
-extern GPIO_TypeDef *const Column_ports[];
-extern const uint16_t Column_pins[];
+extern GPIO_TypeDef *const rowPorts[];
+extern const uint16_t rowPins[];
+extern GPIO_TypeDef *const columnPorts[];
+extern const uint16_t columnPins[];
 extern uint32_t lastGpioExti;
 
-void handleKeypad(uint16_t GPIO_Pin);
+void keypadAssign(uint16_t gpioPin);
+void keypadHandle();
 
 #endif //DOODLEJUMP_KEYPAD_H

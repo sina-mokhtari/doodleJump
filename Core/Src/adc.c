@@ -13,7 +13,7 @@ void adcInit() {
     HAL_ADC_Start_IT(&hadc1);
 }
 
-void handleVolume(ADC_HandleTypeDef *adc) {
+void volumeHandle(ADC_HandleTypeDef *adc) {
     volumeRawValue = HAL_ADC_GetValue(adc);
 
     switch (volumeRawValue) {

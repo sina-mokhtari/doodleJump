@@ -7,10 +7,9 @@
 
 #include "requisite.h"
 
-extern byte doodlerUpByte[], doodlerDownByte[], normalStepByte[], brokenStepByte[], springStepByte[], monsterByte[], holeByte[];
+#define CHARACTERS_NUMBER 80
 
 typedef enum {
-    DefaultCharacterType,
     Air = (uint_fast8_t) 0x20,
     DoodlerUp = (uint_fast8_t) 0,
     DoodlerDown = (uint_fast8_t) 1,
@@ -26,11 +25,18 @@ typedef struct {
     characterType type;
     uint_fast8_t x;
     uint_fast8_t y;
-} character;
+    bool visited;
+} __attribute__((aligned(16))) character;
 
-extern character characters[80];
-extern character doodler[2];
+typedef struct {
+    character upper;
+    character lower;
+} __attribute__((aligned(32)))doodlerType;
 
+
+extern byte doodlerUpByte[], doodlerDownByte[], normalStepByte[], brokenStepByte[], springStepByte[], monsterByte[], holeByte[];
+extern character charactersArr[80];
+extern doodlerType doodler;
 
 
 void shiftDownCharacters(uint32_t shiftStep);
@@ -38,5 +44,12 @@ void shiftDownCharacters(uint32_t shiftStep);
 void generateCharacters();
 
 void charactersInit();
+
+character *findCharacter(uint_fast8_t x, uint_fast8_t y);
+
+__STATIC_INLINE character *getCharacter(uint_fast8_t i) {
+    return &charactersArr[i];
+}
+
 
 #endif //DOODLEJUMP_CHARACTERS_H

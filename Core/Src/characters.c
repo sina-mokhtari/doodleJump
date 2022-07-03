@@ -2,14 +2,14 @@
 // Created by Sina on 6/30/2022.
 //
 
+#include <stdio.h>
+#include <stdlib.h>
+#include "requisite.h"
 #include "characters.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "stdbool.h"
+#include "lcd.h"
 
 #define SUM_OF_PROBABILITIES 100
 
-uint32_t probabilities[2];
 uint32_t generateProbability;
 uint32_t twoStepProbability;
 uint32_t springStepProbability;
@@ -90,140 +90,106 @@ byte holeByte[] = {
         0x00
 };
 
-character characters[80];
-character doodler[2];
-//[2 ... 79] = {(characterType) NULL, 0, 0}
+character charactersArr[CHARACTERS_NUMBER];
+doodlerType doodler;
 
-int replaceRand;
-int replaceRand2;
 
 void charactersInit() {
-    for (int i = 0, y = -1, j; i < 80; i++) {
-        j = i % 4;
-        characters[i] = (character) {Air, j, (j != 0) ? y : ++y};
+    int j;
+    for (int i = 0, y = -1; i < CHARACTERS_NUMBER; i++) {
+        j = i % VERTICAL_LCD_COLUMNS;
+        *getCharacter(i) = (character) {Air, j, (j != 0) ? y : ++y,false};
     }
-    doodler[0] = (character) {DoodlerUp, 2, 9};
-    doodler[1] = (character) {DoodlerDown, 2, 10};
+    doodler.upper = (character) {DoodlerUp, 2, 9,false};
+    doodler.lower = (character) {DoodlerDown, 2, 10,false};
 
-    //characters[56] = (character) {NormalStep, 2, 13};
-    characters[18] = (character) {SpringStep, 2, 4};
-    characters[38] = (character) {NormalStep, 2, 9};
-    characters[54] = (character) {NormalStep, 2, 13};
+    *getCharacter(18) = (character) {SpringStep, 2, 4, false};
+    *getCharacter(38) = (character) {NormalStep, 2, 9, false};
+    *getCharacter(54) = (character) {NormalStep, 2, 13, false};
+}
+
+character *findCharacter(uint_fast8_t x, uint_fast8_t y) {
+
+#pragma unroll
+    for (int i = 0; i < CHARACTERS_NUMBER; i++) {
+        if (getCharacter(i)->y == y &&
+            getCharacter(i)->x == x) {
+            return getCharacter(i);
+        }
+    }
+    return NULL;
 }
 
 characterType randomAdditional() {
-   /* for (int i = 0; i < 3; i++) {
-        switch (rand() % 4) {
+#pragma unroll
+    for (int i = 0; i < 4; i++) {
+        switch (random() % 4) {
             case 0:
-                if (rand() % SUM_OF_PROBABILITIES < brokenStepProbability)
+                if (random() % SUM_OF_PROBABILITIES < brokenStepProbability)
                     return BrokenStep;
                 break;
             case 1:
-                if (rand() % SUM_OF_PROBABILITIES < springStepProbability)
+                if (random() % SUM_OF_PROBABILITIES < springStepProbability)
                     return SpringStep;
                 break;
             case 2:
-                if (rand() % SUM_OF_PROBABILITIES < monsterProbability)
+                if (random() % SUM_OF_PROBABILITIES < monsterProbability)
                     return Monster;
                 break;
             default :
-                if (rand() % SUM_OF_PROBABILITIES < blackHoleProbability)
+                if (random() % SUM_OF_PROBABILITIES < blackHoleProbability)
                     return BlackHole;
                 break;
         }
-    }*/
-
-  /*  if (rand() % SUM_OF_PROBABILITIES < brokenStepProbability)
-        return BrokenStep;
-    else if (rand() % SUM_OF_PROBABILITIES < springStepProbability)
-        return SpringStep;
-    else if (rand() % SUM_OF_PROBABILITIES < monsterProbability)
-        return Monster;
-    else if (rand() % SUM_OF_PROBABILITIES < blackHoleProbability)
-        return BlackHole;*/
+    }
     return Air;
 }
 
 
-
-character randArr[4];
+character randArr[10] = {[0 ... 9] = NormalStep};
 bool foundRandom;
 
 void replaceNewCharacters(uint32_t n) {
 
-    // this code is the problem
-//   for (int i = 0; i < n; i++) {
-    //    randArr[i].x = rand() % 4;
-//randArr[i].x = i;
-       /* for (int j = 0; j < i; j++) {
+    for (int i = 0; i <= n; i++) {
+        randArr[i].x = random() % VERTICAL_LCD_COLUMNS;
+        for (int j = 0; j < i; j++) {
             if (randArr[i].x == randArr[j].x) {
                 i--;
                 break;
             }
-        }*/
-     //   randArr[i].type = NormalStep;
-    //}
+        }
+        randArr[i].type = NormalStep;
+    }
 
-   /* randArr[n].type = randomAdditional();
+    randArr[n].type = randomAdditional();
 
-    for (int i = 0, j = 0; j < 4 && i < 80; i++) {
-        if (characters[i].y == 20) {
-              foundRandom = false;
+    for (int i = 0, j = 0; j < VERTICAL_LCD_COLUMNS && i < CHARACTERS_NUMBER; i++) {
+        if (getCharacter(i)->y == VERTICAL_LCD_ROWS) {
+            foundRandom = false;
+
+#pragma unroll 3
             for (int l = 0; l <= n; l++) {
                 if (j == randArr[l].x) {
-                    characters[i] = (character) {randArr[l].type, j, 20};
+                    *getCharacter(i) = (character) {randArr[l].type, j, 0, false};
                     foundRandom = true;
                     break;
                 }
             }
             if (!foundRandom)
-                characters[i] = (character) {Air, j, 20};
-            //} else
-            // characters[i] = (character) {Air, j, 20};
-
+                *getCharacter(i) = (character) {Air, j, 0,false};
             j++;
         }
-    }
-*/
-   //-----------------------------
-    switch (n) {
-        case 0:
-            for (int i = 0, j = 0; j < 4 && i < 80; i++) {
-                if (characters[i].y == 20) {
-                    characters[i] = (character) {Air, j++, 0};
-                }
-            }
-            break;
-        case 1:
-            replaceRand = rand() % 4;
-            for (int i = 0, j = 0; j < 4 && i < 80; i++) {
-                if (characters[i].y == 20) {
-                    characters[i] = (character) {(j != replaceRand) ? Air : NormalStep, j++, 0};
-                }
-            }
-            break;
-        default: // 2
-            replaceRand = rand() % 4;
-            replaceRand2 = rand() % 4;
-            for (int i = 0, j = 0; j < 4 && i < 80; i++) {
-                if (characters[i].y == 20) {
-                    characters[i] = (character) {(j == replaceRand || j == replaceRand2) ? NormalStep : Air,
-                                                 j++, 0};
-                }
-            }
-            break;
     }
 }
 
 
-//bool generate;
-character generatedCharacters[4];
 uint_fast8_t distanceToLastStep;
 
 void generateCharacters() {
 
-    if ((rand() % SUM_OF_PROBABILITIES) < generateProbability) { // generate
-        if ((rand() % SUM_OF_PROBABILITIES) < twoStepProbability) // generate 2 steps
+    if ((random() % SUM_OF_PROBABILITIES) < generateProbability) { // generate
+        if ((random() % SUM_OF_PROBABILITIES) < twoStepProbability) // generate 2 steps
             replaceNewCharacters(2);
         else    // generate 1 step
             replaceNewCharacters(1);
@@ -238,9 +204,9 @@ void generateCharacters() {
 }
 
 void shiftDownCharacters(uint32_t shiftStep) {
-    for (int i = 0; i < 80; i++) {
-        if (characters[i].type != Bullet)
-            characters[i].y += shiftStep;
+    for (int i = 0; i < CHARACTERS_NUMBER; i++) {
+        if (getCharacter(i)->type != Bullet)
+            getCharacter(i)->y += shiftStep;
 
     }
     generateCharacters();

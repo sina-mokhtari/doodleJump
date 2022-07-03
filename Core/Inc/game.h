@@ -7,14 +7,25 @@
 
 #include "requisite.h"
 
+#define HIGH_JUMP_HEIGHT 20
+#define NORMAL_JUMP_HEIGHT 7
+
 typedef enum {
-    ASCENDING, DESCENDING
+    Ascending, Descending
 } doodlerMoveModeType;
 
-int handleGame();
+typedef enum {
+    Up, Down, Left, Right
+} doodlerMoveDirectionType;
+
+int gameHandle();
+
 void gameStart();
-void doodlerMoveLeft();
-void doodlerMoveRight();
+
+void doodlerMove(doodlerMoveDirectionType direction);
+
 void addScore();
+
 uint32_t getScore();
+
 #endif //DOODLEJUMP_GAME_H

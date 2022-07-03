@@ -6,7 +6,7 @@
 #include "buzzer.h"
 #include "cmsis_os.h"
 
-#define DEFAULT_VOLUME 1
+#define DEFAULT_VOLUME 100
 
 
 #define NOTE_B0  31
@@ -100,8 +100,14 @@
 #define NOTE_DS8 4978
 #define REST      0
 
-TIM_HandleTypeDef *buzzerPwmTimer = &htim8;
-uint32_t buzzerPwmChannel = TIM_CHANNEL_1;
+TIM_HandleTypeDef *buzzerPwmTimer;
+uint32_t buzzerPwmChannel;
+
+void buzzerInit() {
+    buzzerPwmTimer = &htim8;
+    buzzerPwmChannel = TIM_CHANNEL_1;
+    HAL_TIM_PWM_Start(buzzerPwmTimer, buzzerPwmChannel);
+}
 
 void buzzerChangeTone(uint16_t freq, uint16_t volume) {
     if (freq == 0 || freq > 20000) {
@@ -121,9 +127,6 @@ void buzzerChangeTone(uint16_t freq, uint16_t volume) {
     }
 }
 
-void buzzerInit() {
-    HAL_TIM_PWM_Start(buzzerPwmTimer, buzzerPwmChannel);
-}
 
 
 const int introMelody[] = {

@@ -293,7 +293,7 @@ size_t print(const char str[]) {
 }
 
 // Allows us to fill the first 8 CGRAM locations
-// with custom characters
+// with custom charactersArr
 void createChar(uint8_t location, uint8_t charmap[]) {
     location &= 0x7; // we only have 8 locations 0-7
     command(LCD_SETCGRAMADDR | (location << 3));
