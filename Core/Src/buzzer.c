@@ -100,6 +100,7 @@
 #define NOTE_DS8 4978
 #define REST      0
 
+
 TIM_HandleTypeDef *buzzerPwmTimer;
 uint32_t buzzerPwmChannel;
 
@@ -126,7 +127,6 @@ void buzzerChangeTone(uint16_t freq, uint16_t volume) {
         __HAL_TIM_SET_COMPARE(buzzerPwmTimer, buzzerPwmChannel, pulseWidth);
     }
 }
-
 
 
 const int introMelody[] = {
@@ -183,6 +183,16 @@ const int introMelodyTempo[] = {
         132, 132, 132, 275,
 };
 
+int loseMelody[] = {
+        NOTE_D7, NOTE_CS7, NOTE_C7, NOTE_B6,
+        NOTE_AS6, NOTE_A6, NOTE_GS6, NOTE_FS6,
+        NOTE_F6, NOTE_E6, NOTE_DS6, NOTE_D6,
+        NOTE_CS6, NOTE_C6, NOTE_B5, NOTE_AS5,
+        NOTE_A5, NOTE_GS5, NOTE_FS5, NOTE_F5,
+        NOTE_E5, NOTE_DS5, NOTE_D5
+
+};
+
 void buzzerMelodyJumpLittle() {
     buzzerChangeTone(NOTE_B5, DEFAULT_VOLUME);
     osDelay(100);
@@ -233,6 +243,14 @@ void buzzerMelodyIntro() {
     buzzerChangeTone(REST, 0);
 }
 
+void buzzerMelodyLose() {
+    for (int i = 0; i < 23; i++) {
+        buzzerChangeTone(loseMelody[i], DEFAULT_VOLUME);
+        osDelay(173);
+    }
+    buzzerChangeTone(REST, 0);
+}
+
 void buzzerMelodyPlay(melodyName melodyToPlay) {
 
     switch (melodyToPlay) {
@@ -250,6 +268,9 @@ void buzzerMelodyPlay(melodyName melodyToPlay) {
             break;
         case OneUp:
             buzzerMelody1Up();
+            break;
+        case Lose:
+            buzzerMelodyLose();
             break;
         default:
             break;

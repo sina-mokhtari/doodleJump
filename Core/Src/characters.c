@@ -7,6 +7,8 @@
 #include "requisite.h"
 #include "characters.h"
 #include "lcd.h"
+#include "uart.h"
+#include "LiquidCrystal.h"
 
 #define SUM_OF_PROBABILITIES 100
 
@@ -91,17 +93,28 @@ byte holeByte[] = {
 };
 
 character charactersArr[CHARACTERS_NUMBER];
+character charactersArr2[20][4];
 doodlerType doodler;
+character bullets[BULLETS_BUFFER_SIZE];
 
+bool collisionWithDoodler(uint32_t x, uint32_t y) {
+    return (x == doodler.upper.x && y == doodler.upper.y) ||
+           (x == doodler.lower.x && y == doodler.lower.y);
+}
 
 void charactersInit() {
     int j;
     for (int i = 0, y = -1; i < CHARACTERS_NUMBER; i++) {
         j = i % VERTICAL_LCD_COLUMNS;
-        *getCharacter(i) = (character) {Air, j, (j != 0) ? y : ++y,false};
+        *getCharacter(i) = (character) {Air, j, (j != 0) ? y : ++y, false};
     }
-    doodler.upper = (character) {DoodlerUp, 2, 9,false};
-    doodler.lower = (character) {DoodlerDown, 2, 10,false};
+
+    doodler.upper = (character) {DoodlerUp, 2, 9, false};
+    doodler.lower = (character) {DoodlerDown, 2, 10, false};
+
+    for (int i = 0; i < BULLETS_BUFFER_SIZE; ++i) {
+        bullets[i].characterFlag = false;
+    }
 
     *getCharacter(18) = (character) {SpringStep, 2, 4, false};
     *getCharacter(38) = (character) {NormalStep, 2, 9, false};
@@ -120,34 +133,58 @@ character *findCharacter(uint_fast8_t x, uint_fast8_t y) {
     return NULL;
 }
 
-characterType randomAdditional() {
-#pragma unroll
-    for (int i = 0; i < 4; i++) {
-        switch (random() % 4) {
-            case 0:
-                if (random() % SUM_OF_PROBABILITIES < brokenStepProbability)
-                    return BrokenStep;
-                break;
-            case 1:
-                if (random() % SUM_OF_PROBABILITIES < springStepProbability)
-                    return SpringStep;
-                break;
-            case 2:
-                if (random() % SUM_OF_PROBABILITIES < monsterProbability)
-                    return Monster;
-                break;
-            default :
-                if (random() % SUM_OF_PROBABILITIES < blackHoleProbability)
-                    return BlackHole;
-                break;
-        }
+uint32_t myBits = 0;
+uint32_t numberCounter = 0;
+uint32_t numberTest = 0;
+
+characterType randomRecursive() {
+    numberCounter++;
+    if (myBits == 0xf || numberCounter > 20) {
+        myBits = 0;
+        numberTest = numberCounter;
+        numberCounter = 0;
+        return Air;
     }
-    return Air;
+    switch (random() % 4) {
+        case 0:
+            if (((myBits & 1) == 0) && (random() % SUM_OF_PROBABILITIES < brokenStepProbability)) {
+                myBits |= 1;
+                numberTest = numberCounter;
+                numberCounter = 0;
+                return BrokenStep;
+            } else
+                return randomRecursive();
+        case 1:
+            if (((myBits & 2) == 0) && (random() % SUM_OF_PROBABILITIES < springStepProbability)) {
+                myBits |= 2;
+                numberTest = numberCounter;
+                numberCounter = 0;
+                return SpringStep;
+            } else
+                return randomRecursive();
+        case 2:
+            if (((myBits & 4) == 0) && (random() % SUM_OF_PROBABILITIES < monsterProbability)) {
+                myBits |= 4;
+                numberTest = numberCounter;
+                numberCounter = 0;
+                return Monster;
+            } else
+                return randomRecursive();
+        default :
+            if (((myBits & 8) == 0) && (random() % SUM_OF_PROBABILITIES < blackHoleProbability)) {
+                myBits |= 8;
+                numberTest = numberCounter;
+                numberCounter = 0;
+                return BlackHole;
+            } else
+                return randomRecursive();
+    }
 }
 
 
 character randArr[10] = {[0 ... 9] = NormalStep};
 bool foundRandom;
+uint32_t maxNumTest = 0;
 
 void replaceNewCharacters(uint32_t n) {
 
@@ -162,7 +199,11 @@ void replaceNewCharacters(uint32_t n) {
         randArr[i].type = NormalStep;
     }
 
-    randArr[n].type = randomAdditional();
+    randArr[n].type = randomRecursive();
+
+    /* if (numberTest > maxNumTest)
+         maxNumTest = numberTest;
+     uartTransmit("recursiveRandom Run number: %lu\n", maxNumTest);*/
 
     for (int i = 0, j = 0; j < VERTICAL_LCD_COLUMNS && i < CHARACTERS_NUMBER; i++) {
         if (getCharacter(i)->y == VERTICAL_LCD_ROWS) {
@@ -177,12 +218,11 @@ void replaceNewCharacters(uint32_t n) {
                 }
             }
             if (!foundRandom)
-                *getCharacter(i) = (character) {Air, j, 0,false};
+                *getCharacter(i) = (character) {Air, j, 0, false};
             j++;
         }
     }
 }
-
 
 uint_fast8_t distanceToLastStep;
 
@@ -205,10 +245,7 @@ void generateCharacters() {
 
 void shiftDownCharacters(uint32_t shiftStep) {
     for (int i = 0; i < CHARACTERS_NUMBER; i++) {
-        if (getCharacter(i)->type != Bullet)
-            getCharacter(i)->y += shiftStep;
-
+        getCharacter(i)->y += shiftStep;
     }
     generateCharacters();
 }
-

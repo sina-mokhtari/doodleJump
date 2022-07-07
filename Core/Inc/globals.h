@@ -8,6 +8,8 @@
 #include "cmsis_os.h"
 //#include "requisite.h"
 
+extern RTC_HandleTypeDef hrtc;
+
 extern ADC_HandleTypeDef hadc1;
 
 extern UART_HandleTypeDef huart2;

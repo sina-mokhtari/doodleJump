@@ -26,60 +26,61 @@ void lcdInit() {
 
 }
 
+void lcdLose() {
+
+    clear();
+
+    setCursor(0, 3 - doodler.upper.x);
+    write(doodler.upper.type);
+    setCursor(1, 3 - doodler.lower.x);
+    write(doodler.lower.type);
+
+    for (int i = 0; i < 18; ++i) {
+        scrollDisplayRight();
+        osDelay(200);
+    }
+
+    clear();
+}
+
 void lcdTest() {
-    print("yess");
-}
 
-bool collisionWithDoodler(uint32_t x, uint32_t y) {
-    return (x == doodler.upper.x && y == doodler.upper.y) ||
-           (x == doodler.lower.x && y == doodler.lower.y);
-}
-
-bool isBadCharacter(characterType inputCharacter) {
-    return inputCharacter == Monster ||
-           inputCharacter == BlackHole;
 }
 
 character tmpCharacter;
 
 int lcdWriteCount = 0;
-bool foundBadCharacter;
 
 int lcdUpdate() {
     lcdWriteCount = 2;
 
-    // refreshing lcd
-    foundBadCharacter = false;
+
     for (int i = 0; i < CHARACTERS_NUMBER; i++) {
         tmpCharacter = *getCharacter(i);
         if (*lcdArr(tmpCharacter.x, tmpCharacter.y) != tmpCharacter.type) {
-            if (collisionWithDoodler(tmpCharacter.x, tmpCharacter.y)) {
-//                if (isBadCharacter(*lcdArr(tmpCharacter.y][tmpCharacter.x])) {
-//                    foundBadCharacter = true;
-//                    *lcdArr(tmpCharacter.x,tmpCharacter.y) = tmpCharacter.type;
-//                    break;
-//                  }
-
-            } else {
+            if (!collisionWithDoodler(tmpCharacter.x, tmpCharacter.y)) {
                 *lcdArr(tmpCharacter.x, tmpCharacter.y) = tmpCharacter.type;
                 setCursor(tmpCharacter.y, 3 - tmpCharacter.x);
                 write(tmpCharacter.type);
                 lcdWriteCount++;
-                //if (foundBadCharacter)
-                // break;
             }
         }
     }
-    if (!foundBadCharacter) {
-        tmpCharacter = doodler.upper;
-        *lcdArr(tmpCharacter.x, tmpCharacter.y) = tmpCharacter.type;
-        setCursor(tmpCharacter.y, 3 - tmpCharacter.x);
-        write(tmpCharacter.type);
 
-        tmpCharacter = doodler.lower;
-        *lcdArr(tmpCharacter.x, tmpCharacter.y) = tmpCharacter.type;
-        setCursor(tmpCharacter.y, 3 - tmpCharacter.x);
-        write(tmpCharacter.type);
+    *lcdArr(doodler.upper.x, doodler.upper.y) = doodler.upper.type;
+    setCursor(doodler.upper.y, 3 - doodler.upper.x);
+    write(doodler.upper.type);
+
+    *lcdArr(doodler.lower.x, doodler.lower.y) = doodler.lower.type;
+    // setCursor(doodler.lower.y, 3 - doodler.lower.x);
+    write(doodler.lower.type);
+
+    for (int i = 0; i < BULLETS_BUFFER_SIZE; i++) {
+        if (bullets[i].characterFlag) {
+            *lcdArr(bullets[i].x, bullets[i].y) = bullets[i].type;
+            setCursor(bullets[i].y, 3 - bullets[i].x);
+            write(bullets[i].type);
+        }
     }
 
     return lcdWriteCount;

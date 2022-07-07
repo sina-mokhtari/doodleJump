@@ -7,28 +7,63 @@
 #include "characters.h"
 #include "lcd.h"
 #include "buzzer.h"
+#include "uart.h"
 
 uint32_t score = 0;
 
-doodlerMoveModeType doodlerMoveMode = Descending;
+doodlerMoveModeType doodlerMoveMode;
 uint32_t shiftUpCount = 0;
 
-bool monsterCollision() {
-    return *lcdArr(doodler.upper.x, doodler.upper.y) == Monster ||
-           *lcdArr(doodler.lower.x, doodler.lower.y) == Monster;
+RTC_DateTypeDef date;
+RTC_TimeTypeDef time;
+
+gameStateType gameStat;
+
+melodyName melodyToPlay;
+
+RTC_TimeTypeDef getTime() {
+    HAL_RTC_GetTime(&hrtc, &time, RTC_FORMAT_BIN);
+    HAL_RTC_GetDate(&hrtc, &date, RTC_FORMAT_BIN);
+    return time;
 }
 
-bool blackHoleCollision() {
-    return *lcdArr(doodler.upper.x, doodler.lower.y) == BlackHole ||
-           *lcdArr(doodler.lower.x, doodler.lower.y) == BlackHole;
+RTC_DateTypeDef getDate() {
+    HAL_RTC_GetTime(&hrtc, &time, RTC_FORMAT_BIN);
+    HAL_RTC_GetDate(&hrtc, &date, RTC_FORMAT_BIN);
+    return date;
+}
+
+
+bool isMonster(character *suspect) {
+    if (suspect->type == Monster) {
+        uartTransmit("lose by monster\n");
+        return true;
+    }
+
+    return false;
+}
+
+bool isBlackHole(character *suspect) {
+    if (suspect->type == BlackHole) {
+        uartTransmit("lose by black hole\n");
+        return true;
+    }
+    return false;
 }
 
 bool fallDetect() {
-    return doodler.lower.y >= VERTICAL_LCD_ROWS - 1;
+    if (doodler.lower.y >= VERTICAL_LCD_ROWS - 1) {
+        uartTransmit("lose by fall\n");
+        return true;
+    }
+    return false;
 }
 
 void lose() {
-    buzzerChangeTone(1000, 1000);
+    gameStat = Losing;
+    melodyToPlay = Lose;
+    osMessageQueuePut(melodyNameQuHandle, &melodyToPlay, 0U, 10);
+    lcdLose();
 }
 
 void doodlerMoveUp() {
@@ -63,14 +98,13 @@ void doodlerMoveRight() {
 
 
 character *characterTmp;
-melodyName melodyToPlay;
 
 void doodlerJump(uint32_t jumpHeight, uint_fast8_t stepX, uint_fast8_t stepY) {
     doodlerMoveMode = Ascending;
     shiftUpCount = jumpHeight - 1;
     doodlerMoveUp();
     characterTmp = findCharacter(stepX, stepY);
-    if (!characterTmp->visited) {
+    if (!characterTmp->characterFlag) {
         addScore();
         if (jumpHeight == 7)
             melodyToPlay = JumpLittle;
@@ -78,7 +112,7 @@ void doodlerJump(uint32_t jumpHeight, uint_fast8_t stepX, uint_fast8_t stepY) {
             melodyToPlay = JumpBig;
 
         osMessageQueuePut(melodyNameQuHandle, &melodyToPlay, 0U, 10);
-        characterTmp->visited = true;
+        characterTmp->characterFlag = true;
         return;
     }
 }
@@ -117,7 +151,24 @@ bool stepHandle(characterType stepType) {
 
 
 void gameStart() {
-    //buzzerMelodyIntro();
+    charactersInit();
+
+    lcdUpdate();
+
+    doodlerMoveMode = Descending;
+
+    time.Hours = 0;
+    time.Minutes = 0;
+    time.Seconds = 0;
+
+    date.Year = 0;
+    date.Month = 0;
+    date.Date = 0;
+
+    HAL_RTC_SetTime(&hrtc, &time, RTC_FORMAT_BIN);
+    HAL_RTC_SetDate(&hrtc, &date, RTC_FORMAT_BIN);
+
+
 }
 
 characterType stepCollision() {
@@ -131,8 +182,18 @@ characterType stepCollision() {
     return (characterType) NULL;
 }
 
+character *upperDoodlerCovering;
+character *lowerDoodlerCovering;
+
 bool loseSituation() {
-    return monsterCollision() || blackHoleCollision() || fallDetect();
+    upperDoodlerCovering = findCharacter(doodler.upper.x, doodler.upper.y);
+    lowerDoodlerCovering = findCharacter(doodler.lower.x, doodler.lower.y);
+
+    return isMonster(upperDoodlerCovering) ||
+           isBlackHole(upperDoodlerCovering) ||
+           fallDetect() ||
+           isMonster(lowerDoodlerCovering) ||
+           isBlackHole(lowerDoodlerCovering);
 }
 
 void doodlerMove(doodlerMoveDirectionType direction) {
@@ -154,6 +215,32 @@ void doodlerMove(doodlerMoveDirectionType direction) {
     }
 }
 
+void doodlerGunFire() {
+    for (int i = 0; i < BULLETS_BUFFER_SIZE; i++) {
+        if (!bullets[i].characterFlag) {
+            bullets[i] = (character) {Bullet, doodler.upper.x, doodler.upper.y - 1, true};
+            break;
+        }
+    }
+}
+
+void bulletHandle() {
+    for (int i = 0; i < BULLETS_BUFFER_SIZE; i++) {
+        if (bullets[i].characterFlag) {
+            if (isMonster(findCharacter(bullets[i].x, bullets[i].y))) {
+                *findCharacter(bullets[i].x, bullets[i].y) =
+                        (character) {Air, bullets[i].x, bullets[i].y, false};
+                bullets[i].characterFlag = false;
+                continue;
+            } else if (bullets[i].y > 0) {
+                if (!doodlerReachedMiddle())
+                    bullets[i].y--;
+            } else
+                bullets[i].characterFlag = false;
+        }
+    }
+}
+
 void doodlerMoveHandle() {
     if (doodlerMoveMode == Ascending) {
         if (shiftUpCount > 0) {
@@ -171,11 +258,31 @@ void doodlerMoveHandle() {
 
 int gameHandle() {
 
-    if (loseSituation()) {
-        lose();
-        return -1;
-    } else
-        doodlerMoveHandle();
+    switch (gameStat) {
+        case IntroState:
+            break;
+        case Menu:
+            break;
+        case Playing:
 
-    return lcdUpdate();
+            if (loseSituation()) {
+                lose();
+                return 0;
+            }
+
+            bulletHandle();
+            doodlerMoveHandle();
+
+            return lcdUpdate();
+
+            break;
+        case Losing:
+            osThreadSuspend(updateLcdTskHandle);
+            break;
+        default:
+            break;
+    }
+
+    return 0;
+
 }

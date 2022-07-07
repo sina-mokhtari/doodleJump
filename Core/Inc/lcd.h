@@ -24,6 +24,8 @@ void lcdTest();
 
 int lcdUpdate();
 
+void lcdLose();
+
 extern characterType lcdArray[VERTICAL_LCD_ROWS][VERTICAL_LCD_COLUMNS];
 
 __STATIC_INLINE characterType *lcdArr(uint_fast8_t x, uint_fast8_t y) {

@@ -5,9 +5,10 @@
 #include <stdlib.h>
 #include "requisite.h"
 #include "game.h"
+#include "lcd.h"
 
-GPIO_TypeDef *const rowPorts[] = {GPIOD, GPIOD, GPIOD, GPIOD};
-const uint16_t rowPins[] = {GPIO_PIN_0, GPIO_PIN_1, GPIO_PIN_2, GPIO_PIN_3}; // interrupt
+GPIO_TypeDef *const rowPorts[] = {GPIOD, GPIOD, GPIOD, GPIOD}; // interrupts
+const uint16_t rowPins[] = {GPIO_PIN_0, GPIO_PIN_1, GPIO_PIN_2, GPIO_PIN_3}; // interrupts
 GPIO_TypeDef *const columnPorts[] = {GPIOD, GPIOD, GPIOD, GPIOD};
 const uint16_t columnPins[] = {GPIO_PIN_4, GPIO_PIN_5, GPIO_PIN_6, GPIO_PIN_7};
 
@@ -57,16 +58,38 @@ void keypadAssign(uint16_t gpioPin) {
         return; // Reject invalid scan
 
     const uint8_t buttonNumber = rowNumber * 4 + columnNumber + 1;
+
     keypadNum = buttonNumber;
 }
 
+bool firstTime = true;
+
 void keypadHandle() {
-    if (keypadNum == 1) {
-        srandom(osKernelGetTickCount());
-        osThreadResume(updateLcdTskHandle);
-    } else if (keypadNum == 13) {
-        doodlerMove(Left);
-    } else if (keypadNum == 15) {
-        doodlerMove(Right);
+    switch (keypadNum) {
+        case 1:
+            if (firstTime) {
+                srandom(osKernelGetTickCount());
+                lcdInit();
+                firstTime = false;
+            }
+            gameStat = Playing;
+
+            if (osThreadGetState(updateLcdTskHandle) == osThreadBlocked) {
+                osThreadResume(updateLcdTskHandle);
+                gameStart();
+            }
+            break;
+        case 13:
+            doodlerMove(Left);
+            break;
+        case 14:
+            doodlerGunFire();
+            break;
+        case 15:
+            doodlerMove(Right);
+            break;
+        default:
+            break;
     }
+
 }
