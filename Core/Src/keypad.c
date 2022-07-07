@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "requisite.h"
+#include "globals.h"
 #include "game.h"
 #include "lcd.h"
 
@@ -74,9 +75,11 @@ void keypadHandle() {
             }
             gameStat = Playing;
 
+            resetScore();
+
             if (osThreadGetState(updateLcdTskHandle) == osThreadBlocked) {
-                osThreadResume(updateLcdTskHandle);
                 gameStart();
+                osThreadResume(updateLcdTskHandle);
             }
             break;
         case 13:
@@ -92,4 +95,15 @@ void keypadHandle() {
             break;
     }
 
+}
+
+uint32_t lastGpioExti = 0;
+
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
+    if (lastGpioExti + 300 > osKernelGetTickCount())
+        return;
+
+    keypadAssign(GPIO_Pin);
+    osSemaphoreRelease(keypadSemHandle);
+    lastGpioExti = osKernelGetTickCount();
 }

@@ -334,9 +334,9 @@ void send(uint8_t value, GPIO_PinState mode) {
 
 void pulseEnable(void) {
     HAL_GPIO_WritePin(port, enablePin, GPIO_PIN_RESET);
-    osDelay(1);
+   // osDelay(1);
     HAL_GPIO_WritePin(port, enablePin, GPIO_PIN_SET);
-    osDelay(1);    // enable pulse must be >450ns
+   // osDelay(1);    // enable pulse must be >450ns
     HAL_GPIO_WritePin(port, enablePin, GPIO_PIN_RESET);
     osDelay(1);   // commands need > 37us to settle
 }

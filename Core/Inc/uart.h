@@ -5,6 +5,12 @@
 #ifndef DOODLEJUMP_UART_H
 #define DOODLEJUMP_UART_H
 
-void uartTransmit(const char *format, ...);
+void uartFormatTransmit(const char *format, ...);
+
+void uartStringTransmit(const char *string);
+
+void uartReceive();
+
+void uartReceiveHandle();
 
 #endif //DOODLEJUMP_UART_H

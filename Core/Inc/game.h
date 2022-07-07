@@ -28,6 +28,9 @@ typedef enum {
 
 extern gameStateType gameStat;
 
+extern RTC_DateTypeDef date;
+extern RTC_TimeTypeDef time;
+
 int gameHandle();
 
 void gameStart();
@@ -37,6 +40,8 @@ void doodlerMove(doodlerMoveDirectionType direction);
 void addScore();
 
 uint32_t getScore();
+
+void resetScore();
 
 void doodlerGunFire();
 

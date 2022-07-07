@@ -92,7 +92,6 @@ byte holeByte[] = {
         0x00
 };
 
-character charactersArr[CHARACTERS_NUMBER];
 character charactersArr2[20][4];
 doodlerType doodler;
 character bullets[BULLETS_BUFFER_SIZE];
@@ -103,10 +102,11 @@ bool collisionWithDoodler(uint32_t x, uint32_t y) {
 }
 
 void charactersInit() {
-    int j;
-    for (int i = 0, y = -1; i < CHARACTERS_NUMBER; i++) {
-        j = i % VERTICAL_LCD_COLUMNS;
-        *getCharacter(i) = (character) {Air, j, (j != 0) ? y : ++y, false};
+
+    for (int i = 0; i < VERTICAL_LCD_ROWS; i++) {
+        for (int j = 0; j < VERTICAL_LCD_COLUMNS; j++) {
+            *getCharacter(j, i) = (character) {Air, j, i, false};
+        }
     }
 
     doodler.upper = (character) {DoodlerUp, 2, 9, false};
@@ -116,22 +116,11 @@ void charactersInit() {
         bullets[i].characterFlag = false;
     }
 
-    *getCharacter(18) = (character) {SpringStep, 2, 4, false};
-    *getCharacter(38) = (character) {NormalStep, 2, 9, false};
-    *getCharacter(54) = (character) {NormalStep, 2, 13, false};
+    *getCharacter(2, 4) = (character) {SpringStep, 2, 4, false};
+    *getCharacter(2, 9) = (character) {NormalStep, 2, 9, false};
+    *getCharacter(2, 13) = (character) {NormalStep, 2, 13, false};
 }
 
-character *findCharacter(uint_fast8_t x, uint_fast8_t y) {
-
-#pragma unroll
-    for (int i = 0; i < CHARACTERS_NUMBER; i++) {
-        if (getCharacter(i)->y == y &&
-            getCharacter(i)->x == x) {
-            return getCharacter(i);
-        }
-    }
-    return NULL;
-}
 
 uint32_t myBits = 0;
 uint32_t numberCounter = 0;
@@ -181,7 +170,6 @@ characterType randomRecursive() {
     }
 }
 
-
 character randArr[10] = {[0 ... 9] = NormalStep};
 bool foundRandom;
 uint32_t maxNumTest = 0;
@@ -203,26 +191,22 @@ void replaceNewCharacters(uint32_t n) {
 
     /* if (numberTest > maxNumTest)
          maxNumTest = numberTest;
-     uartTransmit("recursiveRandom Run number: %lu\n", maxNumTest);*/
+     uartFormatTransmit("recursiveRandom Run number: %lu\n", maxNumTest);*/
 
-    for (int i = 0, j = 0; j < VERTICAL_LCD_COLUMNS && i < CHARACTERS_NUMBER; i++) {
-        if (getCharacter(i)->y == VERTICAL_LCD_ROWS) {
-            foundRandom = false;
-
-#pragma unroll 3
-            for (int l = 0; l <= n; l++) {
-                if (j == randArr[l].x) {
-                    *getCharacter(i) = (character) {randArr[l].type, j, 0, false};
-                    foundRandom = true;
-                    break;
-                }
+    for (int i = 0; i < 4; ++i) {
+        foundRandom = false;
+        for (int l = 0; l <= n; l++) {
+            if (i == randArr[l].x) {
+                *getCharacter(i, 0) = (character) {randArr[l].type, i, 0, false};
+                foundRandom = true;
+                break;
             }
-            if (!foundRandom)
-                *getCharacter(i) = (character) {Air, j, 0, false};
-            j++;
         }
+        if (!foundRandom)
+            *getCharacter(i, 0) = (character) {Air, i, 0, false};
     }
 }
+
 
 uint_fast8_t distanceToLastStep;
 
@@ -243,9 +227,12 @@ void generateCharacters() {
     }
 }
 
-void shiftDownCharacters(uint32_t shiftStep) {
-    for (int i = 0; i < CHARACTERS_NUMBER; i++) {
-        getCharacter(i)->y += shiftStep;
+void shiftDownCharacters() {
+    for (int i = 18; i >= 0; i--) {
+        for (int j = 3; j >= 0; j--) {
+            *getCharacter(j, i + 1) = *getCharacter(j, i);
+            getCharacter(j, i + 1)->y++;
+        }
     }
     generateCharacters();
 }

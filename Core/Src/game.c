@@ -36,7 +36,7 @@ RTC_DateTypeDef getDate() {
 
 bool isMonster(character *suspect) {
     if (suspect->type == Monster) {
-        uartTransmit("lose by monster\n");
+        uartFormatTransmit("lose by monster\n");
         return true;
     }
 
@@ -45,7 +45,7 @@ bool isMonster(character *suspect) {
 
 bool isBlackHole(character *suspect) {
     if (suspect->type == BlackHole) {
-        uartTransmit("lose by black hole\n");
+        uartFormatTransmit("lose by black hole\n");
         return true;
     }
     return false;
@@ -53,7 +53,7 @@ bool isBlackHole(character *suspect) {
 
 bool fallDetect() {
     if (doodler.lower.y >= VERTICAL_LCD_ROWS - 1) {
-        uartTransmit("lose by fall\n");
+        uartFormatTransmit("lose by fall\n");
         return true;
     }
     return false;
@@ -103,7 +103,7 @@ void doodlerJump(uint32_t jumpHeight, uint_fast8_t stepX, uint_fast8_t stepY) {
     doodlerMoveMode = Ascending;
     shiftUpCount = jumpHeight - 1;
     doodlerMoveUp();
-    characterTmp = findCharacter(stepX, stepY);
+    characterTmp = getCharacter(stepX, stepY);
     if (!characterTmp->characterFlag) {
         addScore();
         if (jumpHeight == 7)
@@ -126,6 +126,10 @@ uint32_t getScore() {
     return score;
 }
 
+void resetScore(){
+    score = 0;
+}
+
 void addScore() {
     score += difficulty + 1;
 }
@@ -139,9 +143,9 @@ bool stepHandle(characterType stepType) {
             doodlerJump(HIGH_JUMP_HEIGHT, doodler.lower.x, doodler.lower.y + 1);
             return true;
         case BrokenStep: {
-            character *tmpChar = findCharacter(doodler.lower.x, doodler.lower.y + 1);
-            if ((*tmpChar).type == BrokenStep)
-                (*tmpChar).type = Air;
+            character *tmpChar = getCharacter(doodler.lower.x, doodler.lower.y + 1);
+            if (tmpChar->type == BrokenStep)
+                tmpChar->type = Air;
             return false;
         }
         default:
@@ -182,18 +186,14 @@ characterType stepCollision() {
     return (characterType) NULL;
 }
 
-character *upperDoodlerCovering;
-character *lowerDoodlerCovering;
 
 bool loseSituation() {
-    upperDoodlerCovering = findCharacter(doodler.upper.x, doodler.upper.y);
-    lowerDoodlerCovering = findCharacter(doodler.lower.x, doodler.lower.y);
 
-    return isMonster(upperDoodlerCovering) ||
-           isBlackHole(upperDoodlerCovering) ||
+    return isMonster(getCharacter(doodler.upper.x, doodler.upper.y)) ||
+           isBlackHole(getCharacter(doodler.upper.x, doodler.upper.y)) ||
            fallDetect() ||
-           isMonster(lowerDoodlerCovering) ||
-           isBlackHole(lowerDoodlerCovering);
+           isMonster(getCharacter(doodler.lower.x, doodler.lower.y)) ||
+           isBlackHole(getCharacter(doodler.lower.x, doodler.lower.y));
 }
 
 void doodlerMove(doodlerMoveDirectionType direction) {
@@ -227,8 +227,8 @@ void doodlerGunFire() {
 void bulletHandle() {
     for (int i = 0; i < BULLETS_BUFFER_SIZE; i++) {
         if (bullets[i].characterFlag) {
-            if (isMonster(findCharacter(bullets[i].x, bullets[i].y))) {
-                *findCharacter(bullets[i].x, bullets[i].y) =
+            if (isMonster(getCharacter(bullets[i].x, bullets[i].y))) {
+                *getCharacter(bullets[i].x, bullets[i].y) =
                         (character) {Air, bullets[i].x, bullets[i].y, false};
                 bullets[i].characterFlag = false;
                 continue;
@@ -257,7 +257,6 @@ void doodlerMoveHandle() {
 }
 
 int gameHandle() {
-
     switch (gameStat) {
         case IntroState:
             break;
@@ -282,7 +281,5 @@ int gameHandle() {
         default:
             break;
     }
-
     return 0;
-
 }

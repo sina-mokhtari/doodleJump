@@ -3,6 +3,7 @@
 //
 #include <math.h>
 //#include "requisite.h"
+#include "globals.h"
 #include "adc.h"
 
 
@@ -110,4 +111,10 @@ void volumeHandle(ADC_HandleTypeDef *adc) {
             break;
     }
 
+}
+
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
+    if (hadc->Instance == ADC1) { // volume
+        osSemaphoreRelease(volumeSemHandle);
+    }
 }

@@ -47,32 +47,33 @@ void lcdTest() {
 
 }
 
-character tmpCharacter;
 
-int lcdWriteCount = 0;
+character *tmpCharacter2;
+
+int lcdWriteCount2 = 0;
 
 int lcdUpdate() {
-    lcdWriteCount = 2;
+    lcdWriteCount2 = 2;
 
-
-    for (int i = 0; i < CHARACTERS_NUMBER; i++) {
-        tmpCharacter = *getCharacter(i);
-        if (*lcdArr(tmpCharacter.x, tmpCharacter.y) != tmpCharacter.type) {
-            if (!collisionWithDoodler(tmpCharacter.x, tmpCharacter.y)) {
-                *lcdArr(tmpCharacter.x, tmpCharacter.y) = tmpCharacter.type;
-                setCursor(tmpCharacter.y, 3 - tmpCharacter.x);
-                write(tmpCharacter.type);
-                lcdWriteCount++;
+    for (int i = 0; i < VERTICAL_LCD_ROWS; i++) {
+        for (int j = 0; j < VERTICAL_LCD_COLUMNS; j++) {
+            tmpCharacter2 = getCharacter(j, i);
+            if (*lcdArr(tmpCharacter2->x, tmpCharacter2->y) != tmpCharacter2->type) {
+                if (!collisionWithDoodler(tmpCharacter2->x, tmpCharacter2->y)) {
+                    *lcdArr(tmpCharacter2->x, tmpCharacter2->y) = tmpCharacter2->type;
+                    setCursor(tmpCharacter2->y, 3 - tmpCharacter2->x);
+                    write(tmpCharacter2->type);
+                    lcdWriteCount2++;
+                }
             }
         }
     }
-
     *lcdArr(doodler.upper.x, doodler.upper.y) = doodler.upper.type;
     setCursor(doodler.upper.y, 3 - doodler.upper.x);
     write(doodler.upper.type);
 
     *lcdArr(doodler.lower.x, doodler.lower.y) = doodler.lower.type;
-    // setCursor(doodler.lower.y, 3 - doodler.lower.x);
+     setCursor(doodler.lower.y, 3 - doodler.lower.x);
     write(doodler.lower.type);
 
     for (int i = 0; i < BULLETS_BUFFER_SIZE; i++) {
@@ -80,8 +81,11 @@ int lcdUpdate() {
             *lcdArr(bullets[i].x, bullets[i].y) = bullets[i].type;
             setCursor(bullets[i].y, 3 - bullets[i].x);
             write(bullets[i].type);
+            lcdWriteCount2++;
         }
     }
 
-    return lcdWriteCount;
+    return lcdWriteCount2;
 }
+
+

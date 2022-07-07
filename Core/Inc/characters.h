@@ -7,7 +7,6 @@
 
 #include "requisite.h"
 
-#define CHARACTERS_NUMBER 80
 #define BULLETS_BUFFER_SIZE 10
 
 typedef enum {
@@ -36,30 +35,22 @@ typedef struct {
 
 
 extern byte doodlerUpByte[], doodlerDownByte[], normalStepByte[], brokenStepByte[], springStepByte[], monsterByte[], holeByte[];
-extern character charactersArr[80];
 extern character charactersArr2[20][4];
 extern doodlerType doodler;
 extern character bullets[BULLETS_BUFFER_SIZE];
 
 
-void shiftDownCharacters(uint32_t shiftStep);
+void shiftDownCharacters();
 
 void generateCharacters();
 
 void charactersInit();
 
-character *findCharacter(uint_fast8_t x, uint_fast8_t y);
-
 bool collisionWithDoodler(uint32_t x, uint32_t y);
 
 
-__STATIC_INLINE character *getCharacter(uint_fast8_t i) {
-    return &charactersArr[i];
-}
-
-__STATIC_INLINE character *getCharacter2(uint_fast8_t x, uint_fast8_t y) {
+__STATIC_INLINE character *getCharacter(uint_fast8_t x, uint_fast8_t y) {
     return &charactersArr2[y][x];
 }
-
 
 #endif //DOODLEJUMP_CHARACTERS_H

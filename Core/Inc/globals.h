@@ -6,7 +6,7 @@
 #define DOODLEJUMP_GLOBALS_H
 
 #include "cmsis_os.h"
-//#include "requisite.h"
+#include "requisite.h"
 
 extern RTC_HandleTypeDef hrtc;
 
@@ -23,6 +23,9 @@ extern osMessageQueueId_t melodyNameQuHandle;
 extern osThreadId_t updateLcdTskHandle;
 
 extern osSemaphoreId_t uartDmaSemHandle;
+extern osSemaphoreId_t keypadSemHandle;
+extern osSemaphoreId_t volumeSemHandle;
+extern osSemaphoreId_t uartDmaRxSemHandle;
 
 extern uint32_t keypadNum;
 extern uint32_t difficulty;
