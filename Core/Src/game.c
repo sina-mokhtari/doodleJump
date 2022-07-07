@@ -8,30 +8,18 @@
 #include "lcd.h"
 #include "buzzer.h"
 #include "uart.h"
+#include "LiquidCrystal.h"
+#include "timeManagement.h"
 
 uint32_t score = 0;
 
 doodlerMoveModeType doodlerMoveMode;
 uint32_t shiftUpCount = 0;
 
-RTC_DateTypeDef date;
-RTC_TimeTypeDef time;
 
 gameStateType gameStat;
 
 melodyName melodyToPlay;
-
-RTC_TimeTypeDef getTime() {
-    HAL_RTC_GetTime(&hrtc, &time, RTC_FORMAT_BIN);
-    HAL_RTC_GetDate(&hrtc, &date, RTC_FORMAT_BIN);
-    return time;
-}
-
-RTC_DateTypeDef getDate() {
-    HAL_RTC_GetTime(&hrtc, &time, RTC_FORMAT_BIN);
-    HAL_RTC_GetDate(&hrtc, &date, RTC_FORMAT_BIN);
-    return date;
-}
 
 
 bool isMonster(character *suspect) {
@@ -39,7 +27,6 @@ bool isMonster(character *suspect) {
         uartFormatTransmit("lose by monster\n");
         return true;
     }
-
     return false;
 }
 
@@ -64,6 +51,7 @@ void lose() {
     melodyToPlay = Lose;
     osMessageQueuePut(melodyNameQuHandle, &melodyToPlay, 0U, 10);
     lcdLose();
+    gameStat = IntroState; // temporary
 }
 
 void doodlerMoveUp() {
@@ -126,7 +114,7 @@ uint32_t getScore() {
     return score;
 }
 
-void resetScore(){
+void resetScore() {
     score = 0;
 }
 
@@ -155,24 +143,26 @@ bool stepHandle(characterType stepType) {
 
 
 void gameStart() {
+    clear();
+
     charactersInit();
 
     lcdUpdate();
 
     doodlerMoveMode = Descending;
 
-    time.Hours = 0;
-    time.Minutes = 0;
-    time.Seconds = 0;
+    dateTime.timeVar.Hours = 0;
+    dateTime.timeVar.Minutes = 0;
+    dateTime.timeVar.Seconds = 0;
 
-    date.Year = 0;
-    date.Month = 0;
-    date.Date = 0;
+    dateTime.dateVar.Year = 0;
+    dateTime.dateVar.Month = 0;
+    dateTime.dateVar.Date = 0;
 
-    HAL_RTC_SetTime(&hrtc, &time, RTC_FORMAT_BIN);
-    HAL_RTC_SetDate(&hrtc, &date, RTC_FORMAT_BIN);
+    HAL_RTC_SetTime(&hrtc, &dateTime.timeVar, RTC_FORMAT_BIN);
+    HAL_RTC_SetDate(&hrtc, &dateTime.dateVar, RTC_FORMAT_BIN);
 
-
+    gameStat = Playing;
 }
 
 characterType stepCollision() {

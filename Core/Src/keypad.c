@@ -68,6 +68,9 @@ bool firstTime = true;
 void keypadHandle() {
     switch (keypadNum) {
         case 1:
+            if (gameStat == Losing)
+                return;
+
             if (firstTime) {
                 srandom(osKernelGetTickCount());
                 lcdInit();

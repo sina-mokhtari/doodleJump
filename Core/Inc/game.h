@@ -28,9 +28,6 @@ typedef enum {
 
 extern gameStateType gameStat;
 
-extern RTC_DateTypeDef date;
-extern RTC_TimeTypeDef time;
-
 int gameHandle();
 
 void gameStart();
