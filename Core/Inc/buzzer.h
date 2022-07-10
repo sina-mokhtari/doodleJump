@@ -8,12 +8,16 @@
 #include "requisite.h"
 
 typedef enum {
-    JumpLittle, JumpBig, Intro, FireBall, OneUp, Lose
+    MelodyJumpLittle, MelodyJumpBig, MelodyIntro, MelodyFireBall, OneUp, MelodyFall,MelodyBlackHole
 } melodyName;
+
+extern bool buzzerPlayingMelody;
 
 void buzzerChangeTone(uint16_t freq, uint16_t volume);
 
 void buzzerInit();
+
+void melodyQueueSend(melodyName name);
 
 void buzzerMelodyIntro();
 

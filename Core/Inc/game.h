@@ -13,10 +13,12 @@
 
 typedef enum {
     IntroState,
-    Menu,
-    Playing,
-    Losing
-} gameStateType;
+    MenuState,
+    PlayingState,
+    LoseState,
+    AboutState,
+    SettingsState
+} programStateType;
 
 typedef enum {
     Ascending, Descending
@@ -26,9 +28,17 @@ typedef enum {
     Up, Down, Left, Right
 } doodlerMoveDirectionType;
 
-extern gameStateType gameStat;
+extern programStateType programState;
 
-int gameHandle();
+extern uint32_t score;
+
+extern uint32_t difficulty;
+
+extern doodlerMoveModeType doodlerMoveMode;
+
+extern uint32_t shiftUpCount;
+
+int programRun();
 
 void gameStart();
 
@@ -36,11 +46,11 @@ void doodlerMove(doodlerMoveDirectionType direction);
 
 void addScore();
 
-uint32_t getScore();
-
 void resetScore();
 
 void doodlerGunFire();
+
+void playingStateKeypadHandle();
 
 
 #endif //DOODLEJUMP_GAME_H

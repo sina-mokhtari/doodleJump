@@ -1,7 +1,8 @@
 //
 // Created by Sina on 6/30/2022.
 //
-
+#include <stdio.h>
+#include <stdlib.h>
 #include "requisite.h"
 #include "game.h"
 #include "characters.h"
@@ -10,21 +11,26 @@
 #include "uart.h"
 #include "LiquidCrystal.h"
 #include "timeManagement.h"
+#include "menu.h"
+#include "intro.h"
+#include "about.h"
+#include "settings.h"
+#include "lose.h"
 
 uint32_t score = 0;
 
+uint32_t difficulty = 2;
+
 doodlerMoveModeType doodlerMoveMode;
+
 uint32_t shiftUpCount = 0;
 
-
-gameStateType gameStat;
-
-melodyName melodyToPlay;
+programStateType programState;
 
 
 bool isMonster(character *suspect) {
     if (suspect->type == Monster) {
-        uartFormatTransmit("lose by monster\n");
+        // uartFormatTransmit("fall by monster\n");
         return true;
     }
     return false;
@@ -32,7 +38,7 @@ bool isMonster(character *suspect) {
 
 bool isBlackHole(character *suspect) {
     if (suspect->type == BlackHole) {
-        uartFormatTransmit("lose by black hole\n");
+        // uartFormatTransmit("fall by black hole\n");
         return true;
     }
     return false;
@@ -40,18 +46,10 @@ bool isBlackHole(character *suspect) {
 
 bool fallDetect() {
     if (doodler.lower.y >= VERTICAL_LCD_ROWS - 1) {
-        uartFormatTransmit("lose by fall\n");
+        //   uartFormatTransmit("fall by fall\n");
         return true;
     }
     return false;
-}
-
-void lose() {
-    gameStat = Losing;
-    melodyToPlay = Lose;
-    osMessageQueuePut(melodyNameQuHandle, &melodyToPlay, 0U, 10);
-    lcdLose();
-    gameStat = IntroState; // temporary
 }
 
 void doodlerMoveUp() {
@@ -95,11 +93,10 @@ void doodlerJump(uint32_t jumpHeight, uint_fast8_t stepX, uint_fast8_t stepY) {
     if (!characterTmp->characterFlag) {
         addScore();
         if (jumpHeight == 7)
-            melodyToPlay = JumpLittle;
+            melodyQueueSend(MelodyJumpLittle);
         else
-            melodyToPlay = JumpBig;
+            melodyQueueSend(MelodyJumpBig);
 
-        osMessageQueuePut(melodyNameQuHandle, &melodyToPlay, 0U, 10);
         characterTmp->characterFlag = true;
         return;
     }
@@ -108,10 +105,6 @@ void doodlerJump(uint32_t jumpHeight, uint_fast8_t stepX, uint_fast8_t stepY) {
 
 bool doodlerReachedMiddle() {
     return doodler.upper.y <= 9;
-}
-
-uint32_t getScore() {
-    return score;
 }
 
 void resetScore() {
@@ -123,6 +116,9 @@ void addScore() {
 }
 
 bool stepHandle(characterType stepType) {
+    if (doodler.dizzy)
+        return false;
+
     switch (stepType) {
         case NormalStep:
             doodlerJump(NORMAL_JUMP_HEIGHT, doodler.lower.x, doodler.lower.y + 1);
@@ -141,17 +137,26 @@ bool stepHandle(characterType stepType) {
     }
 }
 
+bool firstTime = true;
 
 void gameStart() {
+    if (firstTime) {
+        srandom(osKernelGetTickCount());
+        firstTime = false;
+    }
+
+    resetScore();
+
+    gameCharactersInit();
+
+    osMutexAcquire(lcdMutexHandle, osWaitForever);
     clear();
-
-    charactersInit();
-
+    osMutexRelease(lcdMutexHandle);
     lcdUpdate();
 
     doodlerMoveMode = Descending;
 
-    dateTime.timeVar.Hours = 0;
+    /*dateTime.timeVar.Hours = 0;
     dateTime.timeVar.Minutes = 0;
     dateTime.timeVar.Seconds = 0;
 
@@ -160,9 +165,7 @@ void gameStart() {
     dateTime.dateVar.Date = 0;
 
     HAL_RTC_SetTime(&hrtc, &dateTime.timeVar, RTC_FORMAT_BIN);
-    HAL_RTC_SetDate(&hrtc, &dateTime.dateVar, RTC_FORMAT_BIN);
-
-    gameStat = Playing;
+    HAL_RTC_SetDate(&hrtc, &dateTime.dateVar, RTC_FORMAT_BIN);*/
 }
 
 characterType stepCollision() {
@@ -178,12 +181,25 @@ characterType stepCollision() {
 
 
 bool loseSituation() {
+    if (isMonster(getCharacter(doodler.upper.x, doodler.upper.y)) ||
+        isMonster(getCharacter(doodler.lower.x, doodler.lower.y))) {
+        doodlerMoveMode = Descending;
+        shiftUpCount = 0;
+        doodler.dizzy = true;
+        doodler.upper.type = DoodlerUpDizzy;
+    }
+    if (isBlackHole(getCharacter(doodler.upper.x, doodler.upper.y)) ||
+        isBlackHole(getCharacter(doodler.lower.x, doodler.lower.y))) {
+        blackHole();
+        return true;
+    }
 
-    return isMonster(getCharacter(doodler.upper.x, doodler.upper.y)) ||
-           isBlackHole(getCharacter(doodler.upper.x, doodler.upper.y)) ||
-           fallDetect() ||
-           isMonster(getCharacter(doodler.lower.x, doodler.lower.y)) ||
-           isBlackHole(getCharacter(doodler.lower.x, doodler.lower.y));
+    if (fallDetect()) {
+        fall();
+        return true;
+    }
+
+    return false;
 }
 
 void doodlerMove(doodlerMoveDirectionType direction) {
@@ -246,27 +262,53 @@ void doodlerMoveHandle() {
         doodlerMove(Down);
 }
 
+void playingStateKeypadHandle() {
+    switch (keypadNum) {
+
+        case 13:
+            doodlerMove(Left);
+            break;
+        case 14:
+            doodlerGunFire();
+            break;
+        case 15:
+            doodlerMove(Right);
+            break;
+        default:
+            break;
+    }
+}
+
 int gameHandle() {
-    switch (gameStat) {
+    if (loseSituation()) {
+        return 0;
+    }
+
+    bulletHandle();
+
+    doodlerMoveHandle();
+
+    return lcdUpdate();
+}
+
+int programRun() {
+    switch (programState) {
         case IntroState:
+            introHandle();
             break;
-        case Menu:
+        case MenuState:
+            menuHandle();
             break;
-        case Playing:
-
-            if (loseSituation()) {
-                lose();
-                return 0;
-            }
-
-            bulletHandle();
-            doodlerMoveHandle();
-
-            return lcdUpdate();
-
+        case PlayingState:
+            gameHandle();
+        case LoseState:
+            // just wait for blue button interrupt
             break;
-        case Losing:
-            osThreadSuspend(updateLcdTskHandle);
+        case AboutState:
+            aboutHandle();
+            break;
+        case SettingsState:
+            settingsHandle();
             break;
         default:
             break;

@@ -4,6 +4,7 @@
 #include <math.h>
 //#include "requisite.h"
 #include "globals.h"
+#include "game.h"
 #include "adc.h"
 
 

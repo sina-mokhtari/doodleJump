@@ -3,4 +3,4 @@
 //
 #include "requisite.h"
 
-uint32_t difficulty = 2;
+

@@ -31,6 +31,17 @@ byte doodlerUpByte[] = {
         0x00
 };
 
+byte doodlerUpDizzyByte[] = {
+        0x0F,
+        0x18,
+        0x15,
+        0x12,
+        0x15,
+        0x18,
+        0x0F,
+        0x00
+};
+
 byte doodlerDownByte[] = {
         0x0E,
         0x15,
@@ -101,7 +112,7 @@ bool collisionWithDoodler(uint32_t x, uint32_t y) {
            (x == doodler.lower.x && y == doodler.lower.y);
 }
 
-void charactersInit() {
+void gameCharactersInit() {
 
     for (int i = 0; i < VERTICAL_LCD_ROWS; i++) {
         for (int j = 0; j < VERTICAL_LCD_COLUMNS; j++) {
@@ -109,6 +120,7 @@ void charactersInit() {
         }
     }
 
+    doodler.dizzy = false;
     doodler.upper = (character) {DoodlerUp, 2, 9, false};
     doodler.lower = (character) {DoodlerDown, 2, 10, false};
 
@@ -119,6 +131,7 @@ void charactersInit() {
     *getCharacter(2, 4) = (character) {SpringStep, 2, 4, false};
     *getCharacter(2, 9) = (character) {NormalStep, 2, 9, false};
     *getCharacter(2, 13) = (character) {NormalStep, 2, 13, false};
+    *lcdArr(3, 19) = Bullet;
 }
 
 
@@ -235,4 +248,101 @@ void shiftDownCharacters() {
         }
     }
     generateCharacters();
+}
+
+char *characterTypeHash(characterType characterArg) {
+    switch (characterArg) {
+        case Air:
+            return "20";
+            break;
+        case DoodlerUp:
+            return "00";
+            break;
+        case DoodlerDown:
+            return "01";
+            break;
+        case NormalStep:
+            return "02";
+            break;
+        case BrokenStep:
+            return "03";
+            break;
+        case SpringStep:
+            return "04";
+            break;
+        case Monster:
+            return "05";
+            break;
+        case BlackHole:
+            return "06";
+            break;
+        case Bullet:
+            return "a5";
+            break;
+        default:
+            break;
+    }
+}
+
+char myTmpChar[5];
+
+char *characterHash(character characterArg) {
+    switch (characterArg.type) {
+        case Air:
+            if (characterArg.characterFlag)
+                return "201";
+            else
+                return "200";
+            break;
+        case DoodlerUp:
+            if (characterArg.characterFlag)
+                return "001";
+            else
+                return "000";
+            break;
+        case DoodlerDown:
+            if (characterArg.characterFlag)
+                return "011";
+            else
+                return "010";
+            break;
+        case NormalStep:
+            if (characterArg.characterFlag)
+                return "021";
+            else
+                return "020";
+            break;
+        case BrokenStep:
+            if (characterArg.characterFlag)
+                return "031";
+            else
+                return "030";
+            break;
+        case SpringStep:
+            if (characterArg.characterFlag)
+                return "041";
+            else
+                return "040";
+            break;
+        case Monster:
+            if (characterArg.characterFlag)
+                return "051";
+            else
+                return "050";
+            break;
+        case BlackHole:
+            if (characterArg.characterFlag)
+                return "061";
+            else
+                return "060";
+            break;
+        case Bullet:
+            if (characterArg.characterFlag)
+                return "a51";
+            else
+                return "a50";
+            break;
+        default:
+            break;
+    }
 }

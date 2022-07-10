@@ -7,9 +7,14 @@
 #include "globals.h"
 #include "game.h"
 #include "lcd.h"
+#include "menu.h"
+#include "intro.h"
+#include "settings.h"
+#include "about.h"
+#include "lose.h"
 
-GPIO_TypeDef *const rowPorts[] = {GPIOD, GPIOD, GPIOD, GPIOD}; // interrupts
-const uint16_t rowPins[] = {GPIO_PIN_0, GPIO_PIN_1, GPIO_PIN_2, GPIO_PIN_3}; // interrupts
+GPIO_TypeDef *const rowPorts[] = {GPIOC, GPIOD, GPIOD, GPIOD}; // interrupts
+const uint16_t rowPins[] = {GPIO_PIN_12, GPIO_PIN_1, GPIO_PIN_2, GPIO_PIN_3}; // interrupts
 GPIO_TypeDef *const columnPorts[] = {GPIOD, GPIOD, GPIOD, GPIOD};
 const uint16_t columnPins[] = {GPIO_PIN_4, GPIO_PIN_5, GPIO_PIN_6, GPIO_PIN_7};
 
@@ -27,6 +32,10 @@ uint32_t keypadNum;
 // +----+----+----+----+
 void keypadAssign(uint16_t gpioPin) {
 
+    if (gpioPin == BLUE_PUSH_BUTTON_Pin) {
+        keypadNum = 0;
+        return;
+    }
     int rowNumber = -1;
     int columnNumber = -1;
 
@@ -63,38 +72,26 @@ void keypadAssign(uint16_t gpioPin) {
     keypadNum = buttonNumber;
 }
 
-bool firstTime = true;
 
 void keypadHandle() {
-    switch (keypadNum) {
-        case 1:
-            if (gameStat == Losing)
-                return;
-
-            if (firstTime) {
-                srandom(osKernelGetTickCount());
-                lcdInit();
-                firstTime = false;
-            }
-            gameStat = Playing;
-
-            resetScore();
-
-            if (osThreadGetState(updateLcdTskHandle) == osThreadBlocked) {
-                gameStart();
-                osThreadResume(updateLcdTskHandle);
-            }
+    switch (programState) {
+        case IntroState:
+            introKeypadHandle();
             break;
-        case 13:
-            doodlerMove(Left);
+        case MenuState:
+            menuKeypadHandle();
             break;
-        case 14:
-            doodlerGunFire();
+        case PlayingState:
+            playingStateKeypadHandle();
             break;
-        case 15:
-            doodlerMove(Right);
+        case LoseState:
+            loseKeypadHandle();
             break;
-        default:
+        case AboutState:
+            aboutKeypadHandle();
+            break;
+        case SettingsState:
+            settingsKeypadHandle();
             break;
     }
 

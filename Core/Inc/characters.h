@@ -18,6 +18,7 @@ typedef enum {
     SpringStep = (uint_fast8_t) 4,
     Monster = (uint_fast8_t) 5,
     BlackHole = (uint_fast8_t) 6,
+    DoodlerUpDizzy = (uint_fast8_t) 7,
     Bullet = (uint_fast8_t) 0xa5
 } characterType;
 
@@ -31,10 +32,11 @@ typedef struct {
 typedef struct {
     character upper;
     character lower;
-} __attribute__((aligned(32))) doodlerType;
+    bool dizzy;
+} __attribute__((aligned(64))) doodlerType;
 
 
-extern byte doodlerUpByte[], doodlerDownByte[], normalStepByte[], brokenStepByte[], springStepByte[], monsterByte[], holeByte[];
+extern byte doodlerUpByte[], doodlerUpDizzyByte[], doodlerDownByte[], normalStepByte[], brokenStepByte[], springStepByte[], monsterByte[], holeByte[];
 extern character charactersArr2[20][4];
 extern doodlerType doodler;
 extern character bullets[BULLETS_BUFFER_SIZE];
@@ -44,9 +46,13 @@ void shiftDownCharacters();
 
 void generateCharacters();
 
-void charactersInit();
+void gameCharactersInit();
 
 bool collisionWithDoodler(uint32_t x, uint32_t y);
+
+char *characterTypeHash(characterType characterArg);
+
+char *characterHash(character characterArg);
 
 
 __STATIC_INLINE character *getCharacter(uint_fast8_t x, uint_fast8_t y) {

@@ -9,8 +9,14 @@ void uartFormatTransmit(const char *format, ...);
 
 void uartStringTransmit(const char *string);
 
-void uartReceive();
+void uartReceive(uint16_t size);
 
-void uartReceiveHandle();
+void uartRxProcess();
+
+void uartRxHandle();
+
+int gameSave();
+
+void accelerometerRead();
 
 #endif //DOODLEJUMP_UART_H

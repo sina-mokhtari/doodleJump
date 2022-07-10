@@ -12,7 +12,7 @@ extern RTC_HandleTypeDef hrtc;
 
 extern ADC_HandleTypeDef hadc1;
 
-extern UART_HandleTypeDef huart2;
+extern UART_HandleTypeDef huart3;
 
 extern TIM_HandleTypeDef htim8;
 
@@ -22,13 +22,15 @@ extern osThreadId_t playMelodyTskHandle;
 extern osMessageQueueId_t melodyNameQuHandle;
 extern osThreadId_t updateLcdTskHandle;
 
+extern osMutexId_t lcdMutexHandle;
+
 extern osSemaphoreId_t uartDmaSemHandle;
 extern osSemaphoreId_t keypadSemHandle;
 extern osSemaphoreId_t volumeSemHandle;
 extern osSemaphoreId_t uartDmaRxSemHandle;
 
 extern uint32_t keypadNum;
-extern uint32_t difficulty;
+
 extern uint32_t generateProbability;
 extern uint32_t twoStepProbability;
 extern uint32_t springStepProbability;
