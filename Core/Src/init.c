@@ -14,7 +14,7 @@ uint8_t okTest = 3;
 void programInit() {
     programState = IntroState;
     buzzerInit();
-    uartReceive(24);
+    uartReceive(23);
     accelerometerInit();
     //gyroscopeInit();
     for (int i = 0; i < 4; i++)

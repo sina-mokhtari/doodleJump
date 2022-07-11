@@ -231,7 +231,7 @@ void uartRxHandle() {
 }
 
 void uartRxProcess() {
-    rxSize = 24;
+    rxSize = 23;
     switch (signalHash(uartRxTmpStr)) {
         case ControlLeft:
             doodlerMove(Left);
