@@ -137,6 +137,27 @@ bool stepHandle(characterType stepType) {
     }
 }
 
+bool gameLoadedCheck() {
+    if (!gameLoaded)
+        return false;
+
+    for (int i = 0; i < BULLETS_BUFFER_SIZE; ++i) {
+        bullets[i].characterFlag = false;
+    }
+
+    doodler.upper.type = DoodlerUp;
+    doodler.lower.type = DoodlerDown;
+    doodler.dizzy = false;
+
+    osMutexAcquire(lcdMutexHandle, osWaitForever);
+    clear();
+    osMutexRelease(lcdMutexHandle);
+    lcdUpdate();
+
+    gameLoaded = false;
+    return true;
+}
+
 bool firstTime = true;
 
 void gameStart() {
@@ -144,6 +165,9 @@ void gameStart() {
         srandom(osKernelGetTickCount());
         firstTime = false;
     }
+
+    if (gameLoadedCheck())
+        return;
 
     resetScore();
 
