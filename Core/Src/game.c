@@ -264,7 +264,9 @@ void doodlerMoveHandle() {
 
 void playingStateKeypadHandle() {
     switch (keypadNum) {
-
+        case 0:
+            gameSave();
+            break;
         case 13:
             doodlerMove(Left);
             break;

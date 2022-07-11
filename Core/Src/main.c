@@ -71,14 +71,14 @@ PCD_HandleTypeDef hpcd_USB_FS;
 osThreadId_t defaultTaskHandle;
 const osThreadAttr_t defaultTask_attributes = {
   .name = "defaultTask",
-  .stack_size = 200 * 4,
+  .stack_size = 300 * 4,
   .priority = (osPriority_t) osPriorityNormal1,
 };
 /* Definitions for uartTxTsk */
 osThreadId_t uartTxTskHandle;
 const osThreadAttr_t uartTxTsk_attributes = {
   .name = "uartTxTsk",
-  .stack_size = 200 * 4,
+  .stack_size = 300 * 4,
   .priority = (osPriority_t) osPriorityNormal3,
 };
 /* Definitions for getVolumeTsk */
@@ -92,7 +92,7 @@ const osThreadAttr_t getVolumeTsk_attributes = {
 osThreadId_t updateLcdTskHandle;
 const osThreadAttr_t updateLcdTsk_attributes = {
   .name = "updateLcdTsk",
-  .stack_size = 300 * 4,
+  .stack_size = 800 * 4,
   .priority = (osPriority_t) osPriorityNormal2,
 };
 /* Definitions for update7SegTsk */
@@ -120,7 +120,7 @@ const osThreadAttr_t lcdStateTxTsk_attributes = {
 osThreadId_t uartRxTskHandle;
 const osThreadAttr_t uartRxTsk_attributes = {
   .name = "uartRxTsk",
-  .stack_size = 300 * 4,
+  .stack_size = 400 * 4,
   .priority = (osPriority_t) osPriorityNormal3,
 };
 /* Definitions for melodyNameQu */
@@ -132,6 +132,11 @@ const osMessageQueueAttr_t melodyNameQu_attributes = {
 osMutexId_t lcdMutexHandle;
 const osMutexAttr_t lcdMutex_attributes = {
   .name = "lcdMutex"
+};
+/* Definitions for gameLoadMutex */
+osMutexId_t gameLoadMutexHandle;
+const osMutexAttr_t gameLoadMutex_attributes = {
+  .name = "gameLoadMutex"
 };
 /* Definitions for keypadSem */
 osSemaphoreId_t keypadSemHandle;
@@ -232,6 +237,9 @@ int main(void)
   /* Create the mutex(es) */
   /* creation of lcdMutex */
   lcdMutexHandle = osMutexNew(&lcdMutex_attributes);
+
+  /* creation of gameLoadMutex */
+  gameLoadMutexHandle = osMutexNew(&gameLoadMutex_attributes);
 
   /* USER CODE BEGIN RTOS_MUTEX */
     /* add mutexes, ... */
@@ -1153,8 +1161,8 @@ void StartLcdStateTxTsk(void *argument)
         // myStr[179] = '\n'; // space
         // myStr[180] = 0; // '\0'
         //uartStringTransmit(myStr);
-        gameSave();
-        //osDelay(200);
+        gameSync();
+        osDelay(200);
     }
   /* USER CODE END StartLcdStateTxTsk */
 }

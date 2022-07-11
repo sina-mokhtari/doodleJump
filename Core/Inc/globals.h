@@ -23,6 +23,7 @@ extern osMessageQueueId_t melodyNameQuHandle;
 extern osThreadId_t updateLcdTskHandle;
 
 extern osMutexId_t lcdMutexHandle;
+extern osMutexId_t gameLoadMutexHandle;
 
 extern osSemaphoreId_t uartDmaSemHandle;
 extern osSemaphoreId_t keypadSemHandle;

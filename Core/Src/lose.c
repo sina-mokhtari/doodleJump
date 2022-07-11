@@ -155,6 +155,8 @@ void lcdFallAnimation() {
         osDelay(200);
     }
     osMutexRelease(lcdMutexHandle);
+
+    lcdDisplayScoreAfterLose();
 }
 
 void fall() {

@@ -4,6 +4,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "requisite.h"
 #include "characters.h"
 #include "lcd.h"
@@ -128,9 +129,12 @@ void gameCharactersInit() {
         bullets[i].characterFlag = false;
     }
 
+
+    *getCharacter(0, 0) = (character) {SpringStep, 0, 0, true};
     *getCharacter(2, 4) = (character) {SpringStep, 2, 4, false};
     *getCharacter(2, 9) = (character) {NormalStep, 2, 9, false};
     *getCharacter(2, 13) = (character) {NormalStep, 2, 13, false};
+    *getCharacter(3, 19) = (character) {NormalStep, 3, 19, false};
     *lcdArr(3, 19) = Bullet;
 }
 
@@ -279,12 +283,51 @@ char *characterTypeHash(characterType characterArg) {
         case Bullet:
             return "a5";
             break;
+        case DoodlerUpDizzy:
+            return "07";
+            break;
         default:
             break;
     }
 }
 
 char myTmpChar[5];
+
+characterType hashToCharacterType(const char *string) {
+
+    if (strncmp(string, "20", 2) == 0)
+        return Air;
+
+    else if (strncmp(string, "00", 2) == 0)
+        return DoodlerUp;
+
+    else if (strncmp(string, "01", 2) == 0)
+        return DoodlerDown;
+
+    else if (strncmp(string, "02", 2) == 0)
+        return NormalStep;
+
+    else if (strncmp(string, "03", 2) == 0)
+        return BrokenStep;
+
+    else if (strncmp(string, "04", 2) == 0)
+        return SpringStep;
+
+    else if (strncmp(string, "05", 2) == 0)
+        return Monster;
+
+    else if (strncmp(string, "06", 2) == 0)
+        return BlackHole;
+
+    else if (strncmp(string, "07", 2) == 0)
+        return DoodlerUpDizzy;
+
+    else if (strncmp(string, "a5", 2) == 0)
+        return Bullet;
+
+    else
+        return (characterType) NULL;
+}
 
 char *characterHash(character characterArg) {
     switch (characterArg.type) {
@@ -342,7 +385,13 @@ char *characterHash(character characterArg) {
             else
                 return "a50";
             break;
-        default:
+//        default:
+//            break;
+        case DoodlerUpDizzy:
+            if (characterArg.characterFlag)
+                return "071";
+            else
+                return "070";
             break;
     }
 }

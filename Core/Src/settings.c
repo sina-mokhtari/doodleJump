@@ -7,20 +7,22 @@
 #include "game.h"
 #include "menu.h"
 #include "acceleroGyro.h"
+#include "uart.h"
 
 typedef enum {
     ChangeNameOption,
-    AccelerometerControl
+    AccelerometerControl,
+    LoadGame
 } settingsOptionType;
 
 
-static settingsOptionType optionsArr[2] = {ChangeNameOption, AccelerometerControl};
+static settingsOptionType optionsArr[3] = {ChangeNameOption, AccelerometerControl, LoadGame};
 static int currentOptionIdx = 0;
 static int newOptionIdx = 0;
 static bool selectKeyPressed = false;
 static bool keyboardEnabled = false;
 
-
+bool gameLoaded = false;
 void settingsStart() {
     osMutexAcquire(lcdMutexHandle, osWaitForever);
 
@@ -36,6 +38,9 @@ void settingsStart() {
 
     setCursor(0, currentOptionIdx);
     print("*");
+
+    setCursor(1, 2);
+    print("Load Game");
     osMutexRelease(lcdMutexHandle);
 }
 
@@ -143,6 +148,28 @@ static void select() {
                 print("Off");
             osMutexRelease(lcdMutexHandle);
             break;
+        case LoadGame:
+            uartFormatTransmit("2load-request");
+            osDelay(6000);
+            //osMutexAcquire(gameLoadMutexHandle, osWaitForever);
+            //osMutexAcquire(gameLoadMutexHandle, 9000);
+            osMutexAcquire(lcdMutexHandle, osWaitForever);
+            setCursor(11, 2);
+            if (loadDone) {
+                print("Success!");
+                loadDone = false;
+                gameLoaded = true;
+            } else {
+                print("Failed!");
+            }
+            osDelay(2000);
+            setCursor(11, 2);
+            print("        ");
+            osMutexRelease(lcdMutexHandle);
+            //osMutexRelease(gameLoadMutexHandle);
+            break;
+        default:
+            break;
     }
     selectKeyPressed = false;
 }
@@ -157,10 +184,10 @@ void settingsKeypadHandle() {
                 menuStart();
                 break;
             case 2:
-                newOptionIdx = currentOptionIdx > 0 ? currentOptionIdx - 1 : 1;
+                newOptionIdx = currentOptionIdx > 0 ? currentOptionIdx - 1 : 2;
                 break;
             case 10:
-                newOptionIdx = currentOptionIdx < 1 ? currentOptionIdx + 1 : 0;
+                newOptionIdx = currentOptionIdx < 2 ? currentOptionIdx + 1 : 0;
                 break;
             case 6:
                 selectKeyPressed = true;

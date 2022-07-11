@@ -54,6 +54,8 @@ char *characterTypeHash(characterType characterArg);
 
 char *characterHash(character characterArg);
 
+characterType hashToCharacterType(const char *string);
+
 
 __STATIC_INLINE character *getCharacter(uint_fast8_t x, uint_fast8_t y) {
     return &charactersArr2[y][x];

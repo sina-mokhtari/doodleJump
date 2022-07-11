@@ -5,6 +5,8 @@
 #ifndef DOODLEJUMP_SETTINGS_H
 #define DOODLEJUMP_SETTINGS_H
 
+extern bool gameLoaded;
+
 void settingsStart();
 
 void settingsHandle();
